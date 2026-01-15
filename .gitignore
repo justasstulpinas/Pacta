@@ -1,18 +1,18 @@
-# Virtual environments
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual env
 .venv/
 venv/
 
-# Python cache
-__pycache__/
-*.pyc
+# DB
+*.db
 
-# Databases
-*.sqlite3
-
-# Environment variables
-.env
-
-# OS files
+# OS
 .DS_Store
 
-.gitignore_global
+# IDE
+.idea/
+.vscode/
