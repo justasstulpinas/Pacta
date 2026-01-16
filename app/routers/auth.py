@@ -39,22 +39,19 @@ def login(
     data: LoginRequest,
     db: Session = Depends(get_db)
 ):
-    try:
-        user = authenticate_user(
-            db=db,
-            email=data.email,
-            password=data.password
-        )
-    except InvalidCredentialsError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
+    user = authenticate_user(
+        db=db,
+        email=data.email,
+        password=data.password
         )
     
-    return{
-        "message": "Login successful",
+    return {
+        "message": 'Login successful',
         "user_id": user.id
     }
 
+
 # day4 sukurtas router/auth.py router priima http request, validuoja input per schemas,
 # perduoda duomenis service sluoksniui,paverčia rezultatą į HTTP response.
+
+# day 5 pakeistas try/except i paprasta return
