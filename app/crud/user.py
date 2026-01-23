@@ -14,5 +14,9 @@ def create_user(db: Session, email: str, hashed_password: str) -> User:
 def get_user_by_email(db: Session, email: str) -> User | None:
     return db.query(User).filter(User.email == email).first()
 
+def get_user_by_id(db: Session, user_id: int) -> User | None:
+    return db.query(User).filter(User.id == user_id).first()
+
+
 # day4 sukurtas crud/user.py skirtas quierinti DB 
 # crud darbas priimti, irasyti, atnaujinti duomenis, jis atleika veiksma su lentele

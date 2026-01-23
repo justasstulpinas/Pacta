@@ -6,6 +6,8 @@ from app.schemas.auth import UserCreate, LoginRequest
 from app.services.auth_service import login_user
 from app.core.security import hash_password
 from app.crud.user import get_user_by_email, create_user
+from app.dependencies.auth import get_current_user
+from app.models.user import User
 
 router = APIRouter(
     prefix="/auth",
@@ -52,6 +54,12 @@ def login(
         "token_type": "bearer"
     }
 
+@router.get("/me")
+def read_me(current_user: User = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+    }
 
 
 # day4 sukurtas router/auth.py router priima http request, validuoja input per schemas,
