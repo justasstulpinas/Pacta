@@ -1,0 +1,4 @@
+@router.post(
+    "",
+    dependancies = De
+)

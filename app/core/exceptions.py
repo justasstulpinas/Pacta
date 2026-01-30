@@ -14,4 +14,7 @@ class NotFoundError(AppError):
     """Resursas nerastas"""
     pass
 
+class ForbiddenError(Exception):
+    pass
+
 # day 5 sukurtas exceptions error failas kuris skirtas identifikuoti errora

@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 from app.crud.user import get_user_by_email, get_user_by_id
 from app.core.security import verify_password, create_access_token, decode_access_token
 from app.models.user import User
-from app.core.exceptions import InvalidCredentialsError
+from app.core.exceptions import InvalidCredentialsError, ForbiddenError
 from app.core.security import decode_access_token
 from app.crud.revoked_token import revoke_token
-
+from app.models.user import User
 
 
 def login_user(

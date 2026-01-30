@@ -6,7 +6,8 @@ from app.routers.auth import router as auth_router
 from app.core.exceptions import (
     InvalidCredentialsError,
     PermissionDeniedError,
-    NotFoundError
+    NotFoundError,
+    ForbiddenError
 )
 
 app = FastAPI(title="Pacta")
@@ -37,6 +38,13 @@ def not_found_handler(request: Request, exc: NotFoundError):
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={"detail": "Request not found"},
+    )
+
+@app.exception_handler(ForbiddenError)
+def forbidden_handler(_, __):
+    return JSONResponse(
+        status_code=403,
+        content={"detail": "Forbidden"},
     )
 
 

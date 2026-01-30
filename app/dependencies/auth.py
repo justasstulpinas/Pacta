@@ -6,6 +6,7 @@ from app.database import get_db
 from app.services.auth_service import get_current_user_from_payload
 from app.crud.revoked_token import is_token_revoked
 from app.core.exceptions import InvalidCredentialsError
+from app.models.user import User
 
 
 def get_current_user(
@@ -19,3 +20,4 @@ def get_current_user(
         raise InvalidCredentialsError()
 
     return get_current_user_from_payload(db, payload)
+
