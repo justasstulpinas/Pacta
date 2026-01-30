@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas.auth import UserCreate, LoginRequest
-from app.services.auth_service import login_user
-from app.core.security import hash_password
+from app.services.auth_service import login_user, logout_user
+from app.core.security import hash_password, oauth2_scheme, decode_access_token
 from app.crud.user import get_user_by_email, create_user
 from app.dependencies.auth import get_current_user
 from app.models.user import User
@@ -54,6 +55,22 @@ def login(
         "token_type": "bearer"
     }
 
+@router.post("/token")
+def token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
+    access_token = login_user(
+        db=db,
+        email=form_data.username,
+        password=form_data.password,
+    )
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+    }
+
 @router.get("/me")
 def read_me(current_user: User = Depends(get_current_user)):
     return {
@@ -62,6 +79,14 @@ def read_me(current_user: User = Depends(get_current_user)):
     }
 
 
+@router.post('/logout')
+def logout(
+    token: str =Depends(oauth2_scheme),
+    db: Session =Depends(get_db),
+):
+    payload = decode_access_token(token)
+    logout_user(db, payload)
+    return {'status': 'logged_out'}
 # day4 sukurtas router/auth.py router priima http request, validuoja input per schemas,
 # perduoda duomenis service sluoksniui,paverčia rezultatą į HTTP response.
 

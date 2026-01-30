@@ -11,7 +11,8 @@ SECRET_KEY = "DEV_SECRET_CHANGE_LATER"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+# Use a form-based token endpoint for Swagger's OAuth2 password flow.
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 
 pwd_context = CryptContext(
