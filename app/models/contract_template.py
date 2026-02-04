@@ -12,9 +12,11 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from datetime import datetime
+from sqlalchemy import Enum as SAEnum
 
 from app.database import Base
 from app.models.enums import ContractTemplateStatus
+
 
 
 class ContractTemplate(Base):
@@ -42,15 +44,17 @@ class ContractTemplate(Base):
     content = Column(Text, nullable=False)
 
     status = Column(
-        Enum(
-            ContractTemplateStatus,
-            name="contract_template_status",
-            native_enum=False,
-        ),
-        nullable=False,
-        default=ContractTemplateStatus.DRAFT,
-        index=True,
-    )
+    SAEnum(
+        ContractTemplateStatus,
+        name="contract_template_status",
+        native_enum=False,
+        values_callable=lambda enum: [e.value for e in enum], 
+        create_constraint=False,  
+    ),
+    nullable=False,
+    default=ContractTemplateStatus.DRAFT,
+    index=True,
+)
 
     is_deleted = Column(Boolean, nullable=False, default=False, index=True)
 
@@ -70,3 +74,4 @@ Index(
     ContractTemplate.owner_id,
     ContractTemplate.status,
 )
+

@@ -14,12 +14,15 @@ from app.core.exceptions import (
 import os
 from app.database import engine, Base
 from app.models.contract_template import ContractTemplate
+from app.routers.templates import router as templates_router
 
 app = FastAPI(title="Pacta")
 
+print("TABLES:", Base.metadata.tables.keys())
 Base.metadata.create_all(bind=engine)
 
 app.include_router(auth_router)
+app.include_router(templates_router)
 
 
 @app.exception_handler(InvalidCredentialsError)
