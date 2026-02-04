@@ -16,5 +16,11 @@ class User(Base):
         secondary="user_roles",
         lazy="selectin"
     )
+    contract_templates = relationship(
+    "ContractTemplate",
+    back_populates="owner",
+    cascade="all, delete-orphan",
+)
+
 
 # day 2 sukurtas user modelis

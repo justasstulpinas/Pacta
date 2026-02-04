@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from app.database import engine, Base
+import app.models
+
 from app.routers.auth import router as auth_router
 from app.core.exceptions import (
     InvalidCredentialsError,
@@ -9,12 +11,13 @@ from app.core.exceptions import (
     NotFoundError,
     ForbiddenError
 )
+import os
+from app.database import engine, Base
+from app.models.contract_template import ContractTemplate
 
 app = FastAPI(title="Pacta")
 
-
 Base.metadata.create_all(bind=engine)
-
 
 app.include_router(auth_router)
 
