@@ -1,20 +1,26 @@
+from sqlalchemy.orm import Session
+
 from app.core.exceptions import NotFoundError, ForbiddenError
 from app.services.authorization import is_admin
 from app.services.ownership import require_ownership
-from app.models.template import ContractTemplate
-from sqlalchemy.orm import Session
+from app.models.contract_template import ContractTemplate
+from app.models.user import User
+from app.core.exceptions import NotFoundError, ForbiddenError
+from app.services.authorization import is_admin
 
-def get_template(
-    db: Session,
-    template_id: int,
-    user,
-    ):
-    template = db.query(ContractTemplate).filter_by(id=template_id).first()
 
-    if not template:
-        raise NotFoundError()
-    
-    if not is_admin(user):
-        require_ownership(template.owner_id, user.id)
-    
-    return template
+class TemplateService:
+    def __init__(self, db: Session):
+        self.db = db
+    def get_template_by_id(self, template_id: int, user: User):
+        template = (
+            self.db.query(ContractTemplate)
+            .filter(ContractTemplate.id == template_id)
+            .first()
+        )
+
+        if not template or template.is_deleted:
+            raise NotFoundError("Template not found")
+        if template.owner_id != user.id and not is_admin(user):
+            raise ForbiddenError("Access denied")
+        return template

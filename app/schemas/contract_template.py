@@ -15,3 +15,12 @@ class ContractTemplateOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ContractTemplateListItem(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+    status: str
+    
+    class Config:
+        from_attributes = True
