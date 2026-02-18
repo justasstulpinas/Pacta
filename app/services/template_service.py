@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import NotFoundError, ForbiddenError
 from app.services.authorization import is_admin
 from app.services.ownership import require_ownership
 from app.models.contract_template import ContractTemplate
@@ -15,7 +14,10 @@ class TemplateService:
     def get_template_by_id(self, template_id: int, user: User):
         template = (
             self.db.query(ContractTemplate)
-            .filter(ContractTemplate.id == template_id)
+            .filter(
+                ContractTemplate.id == template_id,
+                ContractTemplate.is_deleted == False
+                )
             .first()
         )
 

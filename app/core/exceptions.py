@@ -21,3 +21,8 @@ class NotFoundError(AppError):
 class ForbiddenError(AppError):
     """Prieiga draudžiama"""
     pass
+
+class ValidationError(Exception):
+    def __init__(self, detail):
+        self.detail = detail
+        super().__init__(str(detail))
