@@ -7,6 +7,7 @@ from app.models.user import User
 
 from app.schemas.public_link import PublicLinkCreate, PublicLinkOut
 from app.services.link_service import LinkService
+from app.schemas.public_template import PublicTemplateOut
 
 router = APIRouter(prefix='/links', tags=["links"])
 
@@ -22,3 +23,11 @@ def create_link(
         expires_in_hours= payload.expires_in_hours,
         user = current_user,
     )
+
+@router.get("/public/{token}", response_model=PublicTemplateOut)
+def get_public_template(
+    token: str,
+    db: Session = Depends(get_db),
+):
+    service = LinkService(db)
+    return service.get_public_template(token)
