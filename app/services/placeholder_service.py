@@ -32,3 +32,11 @@ class PlaceholderService:
                     "extra fields": sorted(extra)
                 }
             )
+    @staticmethod
+    def render_content(content: str, payload: dict) -> str:
+        def replace(match):
+            field = match.group("field")
+            return str(payload.get(field, ""))
+
+        return PLACEHOLDER_PATTERN.sub(replace, content)
+        

@@ -146,10 +146,16 @@ class LinkService:
 
         PlaceholderService.validate_payload(expected_fields, payload)
 
+        rendered = PlaceholderService.render_content(
+            template.content,
+            payload,
+        )
+
         filled = FilledContract(
             template_id=template.id,
             link_id=link.id,
             submitted_data=payload,
+            rendered_content = rendered
         )
 
         self.db.add(filled)
