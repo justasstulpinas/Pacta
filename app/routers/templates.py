@@ -8,6 +8,7 @@ from app.models.user import User
 from app.schemas.contract_template import (
     ContractTemplateCreate,
     ContractTemplateOut,
+    ContractTemplateUpdate
 )
 
 from app.services.template_service import TemplateService
@@ -95,3 +96,16 @@ def soft_delete_template(
 ):
     service = TemplateService(db)
     return service.soft_delete_template(template_id, current_user)
+
+@router.put(
+    "/{template_id}",
+    response_model=ContractTemplateOut,
+)
+def update_template(
+    template_id: int,
+    payload: ContractTemplateUpdate,
+    db: Session =Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    service = TemplateService(db)
+    return service.update_template(template_id, payload, current_user)

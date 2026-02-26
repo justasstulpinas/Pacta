@@ -24,3 +24,8 @@ class ContractTemplateListItem(BaseModel):
     
     class Config:
         from_attributes = True
+
+class ContractTemplateUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    content: Optional[str] = None

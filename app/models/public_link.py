@@ -1,0 +1,18 @@
+import uuid
+
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+
+from app.database import Base
+
+class PublicLink(Base):
+    __tablename__ = "public_links"
+
+    id = Column(Integer, primary_key=True, index=True)
+    template_id = Column(Integer, ForeignKey("contract_templates.id"), nullable=False)
+    token = Column(String, unique=True, index= True, nullable=False)
+    expires_at = Column(DateTime, nullable= False)
+    is_revoked = Column(Boolean, default= False, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable= False)
+    template = relationship("ContractTemplate")
