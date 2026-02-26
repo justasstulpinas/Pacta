@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 
 from app.models.public_link import PublicLink
 from app.models.contract_template import ContractTemplate
+from app.models.filled_contract import FilledContract
+from app.services.placeholder_service import PlaceholderService
 from app.models.user import User
 from app.core.exceptions import NotFoundError, ForbiddenError
 from app.services.authorization import is_admin
@@ -110,3 +112,48 @@ class LinkService:
             "content": template.content,
             "fields": fields,
         }
+    
+    def submit_public_contract(self, token: str, payload: dict):
+        link = (
+            self.db.query(PublicLink)
+            .filter(
+                PublicLink.token == token,
+                PublicLink.is_revoked == False,
+            )
+            .first()
+        )
+
+        if not link:
+            raise NotFoundError("Request not found")
+
+        if link.expires_at <= datetime.utcnow():
+            raise NotFoundError("Request not found")
+
+        template = (
+            self.db.query(ContractTemplate)
+            .filter(
+                ContractTemplate.id == link.template_id,
+                ContractTemplate.is_deleted == False,
+                ContractTemplate.status == "active",
+            )
+            .first()
+        )
+
+        if not template:
+            raise NotFoundError("Request not found")
+
+        expected_fields = PlaceholderService.extract_placeholders(template.content)
+
+        PlaceholderService.validate_payload(expected_fields, payload)
+
+        filled = FilledContract(
+            template_id=template.id,
+            link_id=link.id,
+            submitted_data=payload,
+        )
+
+        self.db.add(filled)
+        self.db.commit()
+        self.db.refresh(filled)
+
+        return {"status": "submitted", "id": filled.id}

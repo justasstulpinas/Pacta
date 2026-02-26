@@ -31,3 +31,12 @@ def get_public_template(
 ):
     service = LinkService(db)
     return service.get_public_template(token)
+
+@router.post("/public/{token}/submit")
+def submit_public_contract(
+    token: str,
+    payload: dict,
+    db: Session = Depends(get_db),
+):
+    service = LinkService(db)
+    return service.submit_public_contract(token, payload)
