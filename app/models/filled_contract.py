@@ -1,5 +1,8 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, DateTime, ForeignKey, JSON, Text
+from sqlalchemy import Column, Integer, ForeignKey, JSON, DateTime, Text, String, CheckConstraint
+from sqlalchemy.sql import func
+from app.database import Base
+
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -20,3 +23,21 @@ class FilledContract(Base):
     rendered_content = Column(Text, nullable=False)
 
     template = relationship("ContractTemplate")
+
+    ip_address = Column(String, nullable= False)
+
+    user_agent = Column(String, nullable= True)
+
+    submission_hash = Column(String,nullable= False)
+
+    status = Column(String, nullable=False, default="submitted")
+
+    confirmed_at = Column(DateTime(timezone=True))
+
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('submitted','confirmed','completed','cancelled')",
+            name="filled_contract_status_check"
+            ),
+            )
+    

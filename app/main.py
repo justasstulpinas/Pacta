@@ -1,21 +1,20 @@
+import os
+
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from app.database import engine, Base
-import app.models
-
 from app.routers.auth import router as auth_router
+from app.routers.templates import router as templates_router
+from app.routers import links, contracts
+from app.models.contract_template import ContractTemplate
+from app.core.exceptions import ValidationError
 from app.core.exceptions import (
     InvalidCredentialsError,
     PermissionDeniedError,
     NotFoundError,
     ForbiddenError
 )
-import os
-from app.database import engine, Base
-from app.models.contract_template import ContractTemplate
-from app.routers.templates import router as templates_router
-from app.routers import links
 
 app = FastAPI(title="Pacta")
 
@@ -25,6 +24,7 @@ Base.metadata.create_all(bind=engine)
 app.include_router(auth_router)
 app.include_router(templates_router)
 app.include_router(links.router)
+app.include_router(contracts.router)
 
 
 @app.exception_handler(InvalidCredentialsError)
@@ -55,6 +55,12 @@ def forbidden_handler(_, __):
         content={"detail": "Forbidden"},
     )
 
+@app.exception_handler(ValidationError)
+def validation_error_handler(request: Request, exc: ValidationError):
+    return JSONResponse(
+        status_code=400,
+        content={"detail": exc.detail},
+    )
 
 @app.get("/")
 def root():
@@ -63,4 +69,3 @@ def root():
 @app.get("/health")
 def health():
     return {"health": "alive"}
-

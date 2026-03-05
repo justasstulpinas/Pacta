@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -32,11 +32,18 @@ def get_public_template(
     service = LinkService(db)
     return service.get_public_template(token)
 
+
 @router.post("/public/{token}/submit")
 def submit_public_contract(
     token: str,
     payload: dict,
+    request: Request,
     db: Session = Depends(get_db),
 ):
     service = LinkService(db)
-    return service.submit_public_contract(token, payload)
+    return service.submit_public_contract(
+        token=token,
+        payload=payload,
+        ip=request.client.host,
+        user_agent=request.headers.get("user-agent"),
+    )
