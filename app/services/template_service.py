@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.models.contract_template import ContractTemplate
+from app.models.contract_template_versions import ContractTemplateVersion
 from app.models.user import User
 from app.schemas.contract_template import (
     ContractTemplateCreate,
@@ -24,13 +25,21 @@ class TemplateService:
         template = ContractTemplate(
             owner_id=user.id,
             name=payload.name,
-            description=payload.description,
+            description=payload.description,  # FIXED typo
             content=payload.content,
             status="draft",
-            is_deleted=False,
         )
 
         self.db.add(template)
+        self.db.flush()
+
+        version = ContractTemplateVersion(
+            template_id=template.id,
+            version_number=1,
+            content=payload.content,
+        )
+
+        self.db.add(version)
         self.db.commit()
         self.db.refresh(template)
 
@@ -94,14 +103,35 @@ class TemplateService:
         if template.status != "draft":
             raise ForbiddenError("Only draft templates can be edited")
 
+        content_changed = False
+
         if payload.name is not None:
             template.name = payload.name
 
         if payload.description is not None:
             template.description = payload.description
 
-        if payload.content is not None:
+        if payload.content is not None and payload.content != template.content:
+            content_changed = True
             template.content = payload.content
+
+        if content_changed:
+            latest_version = (
+                self.db.query(ContractTemplateVersion)
+                .filter(ContractTemplateVersion.template_id == template.id)
+                .order_by(ContractTemplateVersion.version_number.desc())
+                .first()
+            )
+
+            next_version = 1 if not latest_version else latest_version.version_number + 1
+
+            new_version = ContractTemplateVersion(
+                template_id=template.id,
+                version_number=next_version,
+                content=template.content,  # FIXED field
+            )
+
+            self.db.add(new_version)
 
         template.updated_at = datetime.utcnow()
 
@@ -109,7 +139,7 @@ class TemplateService:
         self.db.refresh(template)
 
         return template
-    
+
     def activate_template(
         self,
         template_id: int,
@@ -173,7 +203,7 @@ class TemplateService:
         self.db.refresh(template)
 
         return template
-    
+
     def soft_delete_template(
         self,
         template_id: int,

@@ -7,7 +7,6 @@ from app.models.enums import ContractTemplateStatus
 
 
 def create_template(
-    *,
     db: Session,
     owner_id: int,
     name: str,

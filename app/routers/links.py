@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Body
 from sqlalchemy.orm import Session
+import json
+
 
 from app.database import get_db
 from app.dependencies.auth import get_current_user
@@ -33,17 +35,21 @@ def get_public_template(
     return service.get_public_template(token)
 
 
+
 @router.post("/public/{token}/submit")
-def submit_public_contract(
+async def submit_public_contract(
     token: str,
-    payload: dict,
     request: Request,
     db: Session = Depends(get_db),
 ):
+    payload = await request.json()
+
     service = LinkService(db)
+
     return service.submit_public_contract(
         token=token,
         payload=payload,
         ip=request.client.host,
         user_agent=request.headers.get("user-agent"),
     )
+

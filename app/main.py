@@ -1,4 +1,5 @@
 import os
+import app.models
 
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
@@ -18,8 +19,31 @@ from app.core.exceptions import (
 
 app = FastAPI(title="Pacta")
 
+
+def _ensure_schema_compatibility() -> None:
+    if engine.dialect.name != "sqlite":
+        return
+
+    with engine.begin() as conn:
+        columns = {
+            row[1]
+            for row in conn.exec_driver_sql(
+                "PRAGMA table_info(filled_contracts)"
+            ).fetchall()
+        }
+        if "template_version" not in columns:
+            conn.exec_driver_sql(
+                "ALTER TABLE filled_contracts ADD COLUMN template_version INTEGER"
+            )
+        if "template_version_id" not in columns:
+            conn.exec_driver_sql(
+                "ALTER TABLE filled_contracts ADD COLUMN template_version_id INTEGER"
+            )
+
+
 print("TABLES:", Base.metadata.tables.keys())
 Base.metadata.create_all(bind=engine)
+_ensure_schema_compatibility()
 
 app.include_router(auth_router)
 app.include_router(templates_router)

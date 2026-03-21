@@ -8,7 +8,7 @@ PLACEHOLDER_PATTERN = re.compile(r"\{\{\s*(?P<field>[a-zA-Z_][a-zA-Z0-9_]*)\s*\}
 
 class PlaceholderService:
     @staticmethod
-    def extract_placeholders(content: str) -> List[str]:  
+    def extract_placeholders(content: str) -> list[str]:  
         matches = PLACEHOLDER_PATTERN.finditer(content)
         fields= {match.group("field") for match in matches}
         return sorted(fields)

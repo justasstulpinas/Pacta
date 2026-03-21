@@ -1,8 +1,15 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, ForeignKey, JSON, DateTime, Text, String, CheckConstraint
-from sqlalchemy.sql import func
-from app.database import Base
 
+from sqlalchemy import (
+    Column,
+    Integer,
+    ForeignKey,
+    JSON,
+    DateTime,
+    Text,
+    String,
+    CheckConstraint,
+)
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -22,6 +29,9 @@ class FilledContract(Base):
 
     rendered_content = Column(Text, nullable=False)
 
+    # Immutable snapshot of the template version number used for rendering.
+    template_version = Column(Integer, nullable=True)
+
     template = relationship("ContractTemplate")
 
     ip_address = Column(String, nullable= False)
@@ -34,10 +44,17 @@ class FilledContract(Base):
 
     confirmed_at = Column(DateTime(timezone=True))
 
+    template_version_id = Column(
+        Integer,
+        ForeignKey("contract_template_versions.id"),
+        nullable=True,
+    )
+
+    template_version_ref = relationship("ContractTemplateVersion")
+
     __table_args__ = (
         CheckConstraint(
             "status IN ('submitted','confirmed','completed','cancelled')",
-            name="filled_contract_status_check"
-            ),
-            )
-    
+            name="filled_contract_status_check",
+        ),
+    )

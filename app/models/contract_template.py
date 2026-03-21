@@ -68,6 +68,13 @@ class ContractTemplate(Base):
 
     owner = relationship("User", back_populates="contract_templates")
 
+    versions = relationship(
+        "ContractTemplateVersion",
+        back_populates="template",
+        order_by="ContractTemplateVersion.version_number.desc()",
+        cascade="all, delete-orphan",
+    )
+
 
 Index(
     "ix_contract_templates_owner_status",

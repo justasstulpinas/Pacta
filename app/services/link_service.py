@@ -6,17 +6,19 @@ from sqlalchemy.orm import Session
 
 from app.models.public_link import PublicLink
 from app.models.contract_template import ContractTemplate
+from app.models.contract_template_versions import ContractTemplateVersion
 from app.models.filled_contract import FilledContract
 from app.models.user import User
+
 from app.services.authorization import is_admin
 from app.services.placeholder_service import PlaceholderService
+
 from app.core.exceptions import NotFoundError, ForbiddenError
 
 
 class LinkService:
     def __init__(self, db: Session):
         self.db = db
-
 
     def _generate_hash(self, rendered_content: str, payload: dict) -> str:
         serialized = json.dumps(payload, sort_keys=True)
@@ -56,6 +58,19 @@ class LinkService:
             raise NotFoundError("Request not found")
 
         return template
+
+    def _get_latest_version(self, template_id: int) -> ContractTemplateVersion:
+        version = (
+            self.db.query(ContractTemplateVersion)
+            .filter(ContractTemplateVersion.template_id == template_id)
+            .order_by(ContractTemplateVersion.version_number.desc())
+            .first()
+        )
+
+        if not version:
+            raise Exception("Template version missing")
+
+        return version
 
     def create_public_link(
         self,
@@ -102,17 +117,18 @@ class LinkService:
         link = self._get_valid_public_link(token)
         template = self._get_active_template(link.template_id)
 
+        latest_version = self._get_latest_version(template.id)
+
         fields = PlaceholderService.extract_placeholders(
-            template.content
+            latest_version.content
         )
 
         return {
             "name": template.name,
             "description": template.description,
-            "content": template.content,
+            "content": latest_version.content,
             "fields": fields,
         }
-
 
     def submit_public_contract(
         self,
@@ -124,14 +140,16 @@ class LinkService:
         link = self._get_valid_public_link(token)
         template = self._get_active_template(link.template_id)
 
+        latest_version = self._get_latest_version(template.id)
+
         expected_fields = PlaceholderService.extract_placeholders(
-            template.content
+            latest_version.content
         )
 
         PlaceholderService.validate_payload(expected_fields, payload)
 
         rendered = PlaceholderService.render_content(
-            template.content,
+            latest_version.content,
             payload,
         )
 
@@ -139,12 +157,15 @@ class LinkService:
 
         filled = FilledContract(
             template_id=template.id,
+            template_version=latest_version.version_number,
+            template_version_id=latest_version.id,
             link_id=link.id,
             submitted_data=payload,
             rendered_content=rendered,
             ip_address=ip,
             user_agent=user_agent,
             submission_hash=submission_hash,
+            status="submitted",
         )
 
         self.db.add(filled)

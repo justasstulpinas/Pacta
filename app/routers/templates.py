@@ -10,7 +10,9 @@ from app.schemas.contract_template import (
     ContractTemplateOut,
     ContractTemplateUpdate
 )
+from app.schemas.filled_contract import FilledContractResponse
 
+from app.services.contract_service import ContractService
 from app.services.template_service import TemplateService
 
 
@@ -57,6 +59,28 @@ def get_template(
 ):
     service = TemplateService(db)
     return service.get_template_by_id(template_id, current_user)
+
+
+@router.get(
+    "/{template_id}/submissions",
+    response_model=list[FilledContractResponse],
+)
+def get_submissions(
+    template_id: int,
+    limit: int = 20,
+    offset: int = 0,
+    status: str | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    service = ContractService(db)
+    return service.get_template_submissions(
+        template_id=template_id,
+        user=current_user,
+        limit=limit,
+        offset=offset,
+        status=status,
+    )
 
 
 @router.patch(
