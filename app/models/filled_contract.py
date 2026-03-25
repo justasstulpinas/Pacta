@@ -29,7 +29,6 @@ class FilledContract(Base):
 
     rendered_content = Column(Text, nullable=False)
 
-    # Immutable snapshot of the template version number used for rendering.
     template_version = Column(Integer, nullable=True)
 
     template = relationship("ContractTemplate")
@@ -42,7 +41,7 @@ class FilledContract(Base):
 
     status = Column(String, nullable=False, default="submitted")
 
-    confirmed_at = Column(DateTime(timezone=True))
+    confirmed_at = Column(DateTime, nullable=True)
 
     template_version_id = Column(
         Integer,

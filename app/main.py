@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.database import engine, Base
 from app.routers.auth import router as auth_router
-from app.routers.templates import router as templates_router
+from app.routers.templates import router as templates_routern
 from app.routers import links, contracts
 from app.models.contract_template import ContractTemplate
 from app.core.exceptions import ValidationError

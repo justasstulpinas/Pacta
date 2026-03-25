@@ -10,30 +10,30 @@ from app.models.contract_template_versions import ContractTemplateVersion
 from app.models.filled_contract import FilledContract
 from app.models.user import User
 
-from app.services.authorization import is_admin
+from app.models.enums import ContractTemplateStatus
+
 from app.services.placeholder_service import PlaceholderService
 
+from app.services.policy import require_owner_or_admin
+
 from app.core.exceptions import NotFoundError, ForbiddenError
+
+from app.repositories.template_repository import TemplateRepository 
 
 
 class LinkService:
     def __init__(self, db: Session):
         self.db = db
+        self.repo = TemplateRepository(db)
 
-    def _generate_hash(self, rendered_content: str, payload: dict) -> str:
+
+    def _generate_hash(self, rendered_content: str, payload: Dict[str, str]) -> str:
         serialized = json.dumps(payload, sort_keys=True)
         base_string = rendered_content + serialized
         return hashlib.sha256(base_string.encode()).hexdigest()
 
     def _get_valid_public_link(self, token: str) -> PublicLink:
-        link = (
-            self.db.query(PublicLink)
-            .filter(
-                PublicLink.token == token,
-                PublicLink.is_revoked == False,
-            )
-            .first()
-        )
+        link = self.repo.get_valid_link(token)  
 
         if not link:
             raise NotFoundError("Request not found")
@@ -44,31 +44,18 @@ class LinkService:
         return link
 
     def _get_active_template(self, template_id: int) -> ContractTemplate:
-        template = (
-            self.db.query(ContractTemplate)
-            .filter(
-                ContractTemplate.id == template_id,
-                ContractTemplate.is_deleted == False,
-                ContractTemplate.status == "active",
-            )
-            .first()
-        )
+        template = self.repo.get_acttive_template_for_public(template_id)
 
         if not template:
-            raise NotFoundError("Request not found")
+            raise NotFoundError("Template not found")
 
         return template
 
     def _get_latest_version(self, template_id: int) -> ContractTemplateVersion:
-        version = (
-            self.db.query(ContractTemplateVersion)
-            .filter(ContractTemplateVersion.template_id == template_id)
-            .order_by(ContractTemplateVersion.version_number.desc())
-            .first()
-        )
+        version = self.repo.get_latest_version(template_id)
 
         if not version:
-            raise Exception("Template version missing")
+            raise NotFoundError("Template version missing")
 
         return version
 
@@ -79,22 +66,14 @@ class LinkService:
         user: User,
     ) -> PublicLink:
 
-        template = (
-            self.db.query(ContractTemplate)
-            .filter(
-                ContractTemplate.id == template_id,
-                ContractTemplate.is_deleted == False,
-            )
-            .first()
-        )
+        template = self.repo.get_active_by_id(template_id)
 
         if not template:
             raise NotFoundError("Template not found")
 
-        if template.owner_id != user.id and not is_admin(user):
-            raise ForbiddenError("Access denied")
+        require_owner_or_admin(template.owner_id, user)
 
-        if template.status != "active":
+        if template.status != ContractTemplateStatus.ACTIVE.value:
             raise ForbiddenError(
                 "Only active templates can generate public links"
             )
@@ -117,7 +96,7 @@ class LinkService:
         link = self._get_valid_public_link(token)
         template = self._get_active_template(link.template_id)
 
-        latest_version = self._get_latest_version(template.id)
+        latest_version = self.repo._get_latest_version(template.id)
 
         fields = PlaceholderService.extract_placeholders(
             latest_version.content
@@ -133,7 +112,7 @@ class LinkService:
     def submit_public_contract(
         self,
         token: str,
-        payload: dict,
+        payload: Dict[str, str],
         ip: str,
         user_agent: str | None,
     ):

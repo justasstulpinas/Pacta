@@ -13,7 +13,7 @@ def get_user_permissions(user) -> set[str]:
 
 def require_permission(user, permission: str) -> None:
     if permission not in get_user_permissions(user):
-        raise ForbiddenError()
+        raise ForbiddenError("User does not have permission:")
 
 def is_admin(user) -> bool:
     return "admin:all" in get_user_permissions(user)

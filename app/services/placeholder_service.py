@@ -1,5 +1,4 @@
 import re
-from typing import List
 from typing import Dict, List
 from app.core.exceptions import ValidationError
 
@@ -8,7 +7,7 @@ PLACEHOLDER_PATTERN = re.compile(r"\{\{\s*(?P<field>[a-zA-Z_][a-zA-Z0-9_]*)\s*\}
 
 class PlaceholderService:
     @staticmethod
-    def extract_placeholders(content: str) -> list[str]:  
+    def extract_placeholders(content: str) -> List[str]:  
         matches = PLACEHOLDER_PATTERN.finditer(content)
         fields= {match.group("field") for match in matches}
         return sorted(fields)
@@ -28,12 +27,12 @@ class PlaceholderService:
         if missing or extra:
             raise ValidationError(
                 {
-                    "missing fields": sorted(missing),
-                    "extra fields": sorted(extra)
+                    "missing_fields": sorted(missing),
+                    "extra_fields": sorted(extra)
                 }
             )
     @staticmethod
-    def render_content(content: str, payload: dict) -> str:
+    def render_content(content: str, payload: Dict[str, str]) -> str:
         def replace(match):
             field = match.group("field")
             return str(payload.get(field, ""))

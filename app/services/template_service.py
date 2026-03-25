@@ -4,17 +4,32 @@ from sqlalchemy.orm import Session
 from app.models.contract_template import ContractTemplate
 from app.models.contract_template_versions import ContractTemplateVersion
 from app.models.user import User
+from app.models.enums import ContractTemplateStatus
+
 from app.schemas.contract_template import (
     ContractTemplateCreate,
     ContractTemplateUpdate,
 )
-from app.services.authorization import is_admin
+
+from app.services.policy import require_owner_or_admin
+
 from app.core.exceptions import NotFoundError, ForbiddenError
+
+from app.repositories.template_repository import TemplateRepository
 
 
 class TemplateService:
     def __init__(self, db: Session):
         self.db = db
+        self.repo = TemplateRepository(db)
+
+    def _get_template(self, template_id: int) -> ContractTemplate:
+        template = self.repo.get_active_by_id(template_id)
+
+        if not template:
+            raise NotFoundError("Template not found")
+
+        return template
 
     def create_template(
         self,
@@ -25,9 +40,9 @@ class TemplateService:
         template = ContractTemplate(
             owner_id=user.id,
             name=payload.name,
-            description=payload.description,  # FIXED typo
+            description=payload.description,
             content=payload.content,
-            status="draft",
+            status=ContractTemplateStatus.DRAFT.value,
         )
 
         self.db.add(template)
@@ -46,14 +61,7 @@ class TemplateService:
         return template
 
     def list_user_templates(self, user: User):
-        return (
-            self.db.query(ContractTemplate)
-            .filter(
-                ContractTemplate.owner_id == user.id,
-                ContractTemplate.is_deleted == False,
-            )
-            .all()
-        )
+        return self.repo.list_by_owner(user.id)
 
     def get_template_by_id(
         self,
@@ -61,20 +69,9 @@ class TemplateService:
         user: User,
     ) -> ContractTemplate:
 
-        template = (
-            self.db.query(ContractTemplate)
-            .filter(
-                ContractTemplate.id == template_id,
-                ContractTemplate.is_deleted == False,
-            )
-            .first()
-        )
+        template = self._get_template(template_id)
 
-        if not template:
-            raise NotFoundError("Template not found")
-
-        if template.owner_id != user.id and not is_admin(user):
-            raise ForbiddenError("Access denied")
+        require_owner_or_admin(template.owner_id, user)
 
         return template
 
@@ -85,22 +82,11 @@ class TemplateService:
         user: User,
     ) -> ContractTemplate:
 
-        template = (
-            self.db.query(ContractTemplate)
-            .filter(
-                ContractTemplate.id == template_id,
-                ContractTemplate.is_deleted == False,
-            )
-            .first()
-        )
+        template = self._get_template(template_id)
 
-        if not template:
-            raise NotFoundError("Template not found")
+        require_owner_or_admin(template.owner_id, user)
 
-        if template.owner_id != user.id and not is_admin(user):
-            raise ForbiddenError("Access denied")
-
-        if template.status != "draft":
+        if template.status != ContractTemplateStatus.DRAFT.value:
             raise ForbiddenError("Only draft templates can be edited")
 
         content_changed = False
@@ -116,19 +102,16 @@ class TemplateService:
             template.content = payload.content
 
         if content_changed:
-            latest_version = (
-                self.db.query(ContractTemplateVersion)
-                .filter(ContractTemplateVersion.template_id == template.id)
-                .order_by(ContractTemplateVersion.version_number.desc())
-                .first()
-            )
+            latest_version = self.repo.get_latest_version(template.id)
 
-            next_version = 1 if not latest_version else latest_version.version_number + 1
+            next_version = (
+                1 if not latest_version else latest_version.version_number + 1
+            )
 
             new_version = ContractTemplateVersion(
                 template_id=template.id,
                 version_number=next_version,
-                content=template.content,  # FIXED field
+                content=template.content,
             )
 
             self.db.add(new_version)
@@ -146,25 +129,14 @@ class TemplateService:
         user: User,
     ) -> ContractTemplate:
 
-        template = (
-            self.db.query(ContractTemplate)
-            .filter(
-                ContractTemplate.id == template_id,
-                ContractTemplate.is_deleted == False,
-            )
-            .first()
-        )
+        template = self._get_template(template_id)
 
-        if not template:
-            raise NotFoundError("Template not found")
+        require_owner_or_admin(template.owner_id, user)
 
-        if template.owner_id != user.id and not is_admin(user):
-            raise ForbiddenError("Access denied")
-
-        if template.status != "draft":
+        if template.status != ContractTemplateStatus.DRAFT.value:
             raise ForbiddenError("Only draft templates can be activated")
 
-        template.status = "active"
+        template.status = ContractTemplateStatus.ACTIVE.value
         template.updated_at = datetime.utcnow()
 
         self.db.commit()
@@ -178,25 +150,14 @@ class TemplateService:
         user: User,
     ) -> ContractTemplate:
 
-        template = (
-            self.db.query(ContractTemplate)
-            .filter(
-                ContractTemplate.id == template_id,
-                ContractTemplate.is_deleted == False,
-            )
-            .first()
-        )
+        template = self._get_template(template_id)
 
-        if not template:
-            raise NotFoundError("Template not found")
+        require_owner_or_admin(template.owner_id, user)
 
-        if template.owner_id != user.id and not is_admin(user):
-            raise ForbiddenError("Access denied")
-
-        if template.status != "active":
+        if template.status != ContractTemplateStatus.ACTIVE.value:
             raise ForbiddenError("Only active templates can be archived")
 
-        template.status = "archived"
+        template.status = ContractTemplateStatus.ARCHIVED.value
         template.updated_at = datetime.utcnow()
 
         self.db.commit()
@@ -210,22 +171,11 @@ class TemplateService:
         user: User,
     ) -> ContractTemplate:
 
-        template = (
-            self.db.query(ContractTemplate)
-            .filter(
-                ContractTemplate.id == template_id,
-                ContractTemplate.is_deleted == False,
-            )
-            .first()
-        )
+        template = self._get_template(template_id)
 
-        if not template:
-            raise NotFoundError("Template not found")
+        require_owner_or_admin(template.owner_id, user)
 
-        if template.owner_id != user.id and not is_admin(user):
-            raise ForbiddenError("Access denied")
-
-        if template.status == "active":
+        if template.status == ContractTemplateStatus.ACTIVE.value:
             raise ForbiddenError("Active templates cannot be deleted")
 
         template.is_deleted = True

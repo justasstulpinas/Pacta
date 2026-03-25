@@ -3,100 +3,61 @@ from sqlalchemy.sql import func
 
 from app.models.filled_contract import FilledContract
 from app.models.contract_template import ContractTemplate
+
 from app.core.exceptions import NotFoundError, ForbiddenError, BadRequestError
 
+from app.services.policy import require_owner_or_admin
 
-def get_submission_by_id(
-    db: Session,
-    submission_id: int,
-    current_user
-) -> FilledContract:
+from app.repositories.template_repository import TemplateRepository
 
-    submission = (
-        db.query(FilledContract)
-        .filter(FilledContract.id == submission_id)
-        .first()
-    )
+
+def _get_submission(db: Session, submission_id: int) -> FilledContract:
+    repo = TemplateRepository(db)
+    submission = repo.get_submission_by_id(submission_id)
 
     if not submission:
         raise NotFoundError("Submission not found")
 
-    template = (
-        db.query(ContractTemplate)
-        .filter(ContractTemplate.id == submission.template_id)
-        .first()
-    )
+    return submission
 
-    if not template or template.is_deleted:
+
+def _get_template(db: Session, template_id: int) -> ContractTemplate:
+    repo = TemplateRepository(db)
+    template = repo.get_active_by_id(template_id)
+
+    if not template:
         raise NotFoundError("Template not found")
 
-    if template.owner_id != current_user.id and not current_user.is_admin:
-        raise ForbiddenError("Access denied")
+    return template
 
-    return submission
-
-def confirm_contract(
-        db: Session,
-        submision_id: int,
-        current_user
+def get_submission_by_id(
+    db: Session,
+    submission_id: int,
+    current_user,
 ) -> FilledContract:
-    
-    submission = (
-        db.query(FilledContract)
-        .filter(FilledContract.id == submision_id)
-        .first()
-    )
-    if not submission:
-        raise NotFoundError('Submission not found')
-    
-    template = (
-        db.query(ContractTemplate)
-        .filter(ContractTemplate.id == submission.template_id)
-        .first()
-    )
-    
-    if not template or template.is_deleted:
-        raise NotFoundError("template not found")
-    if template.owner_id != current_user.id and not current_user.is_admin:
-        raise ForbiddenError("access denied")
-    if submission.status != "submitted":
-        raise BadRequestError("contract cannot be confirmed")
-    
-    submission.status = "confirmed"
-    submission.confirmed_at = func.now()
 
-    db.commit()
-    db.refresh(submission)
+    submission = _get_submission(db, submission_id)
+    template = _get_template(db, submission.template_id)
+
+    require_owner_or_admin(template.owner_id, current_user)
 
     return submission
+
 
 def confirm_submission(
-        db: Session,
-        submission_id: int,
-        current_user
-)-> FilledContract:
-    
-    submission = (
-        db.query(FilledContract)
-        .filter(FilledContract.id == submission_id)
-        .first()
-    )
-    if not submission:
-        raise NotFoundError("submission not found")
-    
-    template = (
-        db.query(ContractTemplate)
-        .filter(ContractTemplate.id == submission.template_id)
-        .first()
-    )
+    db: Session,
+    submission_id: int,
+    current_user,
+) -> FilledContract:
 
-    if not template or template.is_deleted:
-        raise NotFoundError("template not found")
-    if template.owner_id != current_user.id and not current_user.is_admin:
-        raise ForbiddenError("access denied")
+    submission = _get_submission(db, submission_id)
+    template = _get_template(db, submission.template_id)
+
+    require_owner_or_admin(template.owner_id, current_user)
+
     if submission.status != "submitted":
-        raise BadRequestError("submission cannot be confirmed")
-    
+        raise BadRequestError("Submission cannot be confirmed")
+
     submission.status = "confirmed"
     submission.confirmed_at = func.now()
 
