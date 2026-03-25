@@ -1,20 +1,22 @@
-from app.services.authorization import is_admin
 from app.core.exceptions import ForbiddenError
-from app.models.user import User
+import app.services.authorization as authorization
 
-def require_owner_or_admin(resource_owner_id: int, user: User) -> None:
+
+def require_owner_or_admin(resource_owner_id: int, user) -> None:
     if resource_owner_id == user.id:
         return
 
-    if is_admin(user):
+    if authorization.is_admin(user):
         return
 
     raise ForbiddenError("Access denied")
 
-def require_admin(user: User) -> None:
-    if not is_admin(user):
-        raise ForbiddenError("Admin privileges required")
-    
-def require_user(user: User) -> None:
-    if user is None:
+
+def require_owner(resource_owner_id: int, user) -> None:
+    if resource_owner_id != user.id:
         raise ForbiddenError("Access denied")
+
+
+def require_admin(user) -> None:
+    if not authorization.is_admin(user):
+        raise ForbiddenError("Admin only")

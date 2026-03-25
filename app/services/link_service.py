@@ -1,7 +1,8 @@
 import uuid
 import hashlib
 import json
-from datetime import datetime, timedelta
+from typing import Dict
+from datetime import datetime, timedelta, UTC
 from sqlalchemy.orm import Session
 
 from app.models.public_link import PublicLink
@@ -37,14 +38,18 @@ class LinkService:
 
         if not link:
             raise NotFoundError("Request not found")
+        
+        expires_at = link.expires_at
 
-        if link.expires_at <= datetime.utcnow():
-            raise NotFoundError("Request not found")
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=UTC)
 
+        if expires_at < datetime.now(UTC):
+            raise NotFoundError("Request not found")    
         return link
 
     def _get_active_template(self, template_id: int) -> ContractTemplate:
-        template = self.repo.get_acttive_template_for_public(template_id)
+        template = self.repo.get_active_template_for_public(template_id)
 
         if not template:
             raise NotFoundError("Template not found")
@@ -83,7 +88,7 @@ class LinkService:
         link = PublicLink(
             template_id=template.id,
             token=token,
-            expires_at=datetime.utcnow() + timedelta(hours=expires_in_hours),
+            expires_at=datetime.now(UTC) + timedelta(hours=expires_in_hours),
         )
 
         self.db.add(link)

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from sqlalchemy.orm import Session
 
 from app.models.contract_template import ContractTemplate
@@ -24,9 +24,9 @@ class TemplateService:
         self.repo = TemplateRepository(db)
 
     def _get_template(self, template_id: int) -> ContractTemplate:
-        template = self.repo.get_active_by_id(template_id)
+        template = self.repo.get_by_id(template_id)
 
-        if not template:
+        if not template or template.is_deleted:
             raise NotFoundError("Template not found")
 
         return template
@@ -116,7 +116,7 @@ class TemplateService:
 
             self.db.add(new_version)
 
-        template.updated_at = datetime.utcnow()
+        template.updated_at = datetime.now(UTC)
 
         self.db.commit()
         self.db.refresh(template)
@@ -137,7 +137,7 @@ class TemplateService:
             raise ForbiddenError("Only draft templates can be activated")
 
         template.status = ContractTemplateStatus.ACTIVE.value
-        template.updated_at = datetime.utcnow()
+        template.updated_at = datetime.now(UTC)
 
         self.db.commit()
         self.db.refresh(template)
@@ -158,7 +158,7 @@ class TemplateService:
             raise ForbiddenError("Only active templates can be archived")
 
         template.status = ContractTemplateStatus.ARCHIVED.value
-        template.updated_at = datetime.utcnow()
+        template.updated_at = datetime.now(UTC)
 
         self.db.commit()
         self.db.refresh(template)
@@ -179,7 +179,7 @@ class TemplateService:
             raise ForbiddenError("Active templates cannot be deleted")
 
         template.is_deleted = True
-        template.updated_at = datetime.utcnow()
+        template.updated_at = datetime.now(UTC  )
 
         self.db.commit()
         self.db.refresh(template)

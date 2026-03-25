@@ -6,8 +6,8 @@ from fastapi.responses import JSONResponse
 
 from app.database import engine, Base
 from app.routers.auth import router as auth_router
-from app.routers.templates import router as templates_routern
 from app.routers import links, contracts
+from app.routers.templates import router as templates_router
 from app.models.contract_template import ContractTemplate
 from app.core.exceptions import ValidationError
 from app.core.exceptions import (
@@ -17,7 +17,12 @@ from app.core.exceptions import (
     ForbiddenError
 )
 
+from tests.api.test_authorization_dependency import router as test_router
+
+
+
 app = FastAPI(title="Pacta")
+app.include_router(test_router)
 
 
 def _ensure_schema_compatibility() -> None:

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 
 from sqlalchemy import (
     Column,
@@ -25,7 +25,7 @@ class FilledContract(Base):
 
     submitted_data = Column(JSON, nullable=False)
 
-    submitted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    submitted_at = Column(DateTime, default=datetime.now(UTC), nullable=False)
 
     rendered_content = Column(Text, nullable=False)
 

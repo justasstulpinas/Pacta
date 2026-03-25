@@ -4,7 +4,7 @@ from app.crud.user import get_user_by_email, get_user_by_id
 from app.crud.revoked_token import revoke_token
 
 from app.core.security import verify_password, create_access_token
-from app.core.exceptions import InvalidCredentialsError
+from app.core.exceptions import InvalidCredentialsError, UnauthorizedError
 
 from app.models.user import User
 
@@ -39,3 +39,13 @@ def logout_user(db: Session, token_payload: dict) -> None:
         return
 
     revoke_token(db, jti)
+
+def get_current_user_from_payload(payload: dict, db) -> User:
+    user_id = payload.get("sub")
+    if not user_id:
+        raise UnauthorizedError("Invalid token")
+
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    if not user:
+        raise UnauthorizedError("User not found")   
+    return user

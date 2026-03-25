@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from sqlalchemy import create_engine
@@ -50,7 +50,7 @@ def test_owner_can_list_template_submissions_ordered_desc():
         link = PublicLink(
             template_id=template.id,
             token="token-1",
-            expires_at=datetime.utcnow() + timedelta(hours=1),
+            expires_at=datetime.now(UTC) + timedelta(hours=1),
             is_revoked=False,
         )
         db.add(link)
@@ -158,7 +158,7 @@ def test_submissions_support_status_filter_and_pagination():
         link = PublicLink(
             template_id=template.id,
             token="token-2",
-            expires_at=datetime.utcnow() + timedelta(hours=1),
+            expires_at=datetime.now(UTC) + timedelta(hours=1),
             is_revoked=False,
         )
         db.add(link)

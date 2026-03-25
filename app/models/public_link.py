@@ -1,6 +1,6 @@
 import uuid
 
-from datetime import datetime
+from datetime import datetime, UTC
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
@@ -14,5 +14,5 @@ class PublicLink(Base):
     token = Column(String, unique=True, index= True, nullable=False)
     expires_at = Column(DateTime, nullable= False)
     is_revoked = Column(Boolean, default= False, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable= False)
+    created_at = Column(DateTime, default=datetime.now(UTC), nullable= False)
     template = relationship("ContractTemplate")

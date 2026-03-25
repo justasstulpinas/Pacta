@@ -1,5 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from pydantic import ConfigDict
+
+
 
 class ContractTemplateCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
@@ -13,8 +16,7 @@ class ContractTemplateOut(BaseModel):
     content: str
     status: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ContractTemplateListItem(BaseModel):
     id: int
@@ -22,8 +24,7 @@ class ContractTemplateListItem(BaseModel):
     description: Optional[str]
     status: str
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ContractTemplateUpdate(BaseModel):
     name: Optional[str] = None

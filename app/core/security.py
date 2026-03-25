@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Optional, Dict, Any
 from uuid import uuid4
 
@@ -31,7 +31,7 @@ def create_access_token(
     expires_delta: Optional[timedelta] = None
 ) -> str:
     
-    now =datetime.utcnow()
+    now =datetime.now(UTC)
     
     if expires_delta:
         expire = now + expires_delta
@@ -43,7 +43,7 @@ def create_access_token(
     to_encode: Dict[str, Any] = {
         "sub": subject,
         "exp": expire,
-        "iat": datetime.utcnow(),
+        "iat": datetime.now(UTC),
         'jti': str(uuid4())
     }
 

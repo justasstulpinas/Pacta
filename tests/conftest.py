@@ -1,20 +1,59 @@
 import pytest
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
-from fastapi.responses import JSONResponse
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
-from app.core.exceptions import ForbiddenError
-from tests.api.test_authorization_dependency import router
+from app.database import Base
+from app.models.user import User
+
+from fastapi.testclient import TestClient
+from app.main import app
 
 
 @pytest.fixture
 def client():
-    app = FastAPI()
-
-    @app.exception_handler(ForbiddenError)
-    def forbidden_handler(_, __):
-        return JSONResponse(status_code=403, content={"detail": "Forbidden"})
-
-    app.include_router(router)
-
     return TestClient(app)
+
+
+@pytest.fixture
+def db():
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    TestingSessionLocal = sessionmaker(bind=engine)
+
+    Base.metadata.create_all(bind=engine)
+
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+@pytest.fixture
+def db_session(db):
+    return db
+
+
+@pytest.fixture
+def user(db):
+    user = User(email="test@test.com", hashed_password="x")
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@pytest.fixture
+def test_user(db):
+    user = User(email="test@test.com", hashed_password="x")
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+@pytest.fixture
+def another_user(db):
+    user = User(email="other@test.com", hashed_password="x")
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user

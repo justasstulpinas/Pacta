@@ -10,7 +10,6 @@ from app.services.policy import require_owner_or_admin
 
 from app.repositories.template_repository import TemplateRepository
 
-
 def _get_submission(db: Session, submission_id: int) -> FilledContract:
     repo = TemplateRepository(db)
     submission = repo.get_submission_by_id(submission_id)
@@ -65,3 +64,10 @@ def confirm_submission(
     db.refresh(submission)
 
     return submission
+
+def confirm_contract(
+        db,
+        submission_id: int,
+        current_user,
+):
+    return confirm_submission(db, submission_id, current_user)

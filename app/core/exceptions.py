@@ -20,7 +20,11 @@ class ForbiddenError(AppError):
 class BadRequestError(AppError):
     pass
 
+class UnauthorizedError(AppError):
+    pass
+
 class ValidationError(Exception):
     def __init__(self, detail):
         self.detail = detail
         super().__init__(str(detail))
+

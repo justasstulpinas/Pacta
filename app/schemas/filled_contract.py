@@ -1,6 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Any, Dict, Optional
+
 
 
 class FilledContractResponse(BaseModel):
@@ -17,5 +18,4 @@ class FilledContractResponse(BaseModel):
     user_agent: Optional[str]
     submission_hash: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

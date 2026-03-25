@@ -11,7 +11,7 @@ from sqlalchemy import (
     CheckConstraint,
 )
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, UTC
 from sqlalchemy import Enum as SAEnum
 
 from app.database import Base
@@ -58,12 +58,12 @@ class ContractTemplate(Base):
 
     is_deleted = Column(Boolean, nullable=False, default=False, index=True)
 
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=datetime.now(UTC))
     updated_at = Column(
         DateTime,
         nullable=False,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=datetime.now(UTC),
+        onupdate=datetime.now(UTC),
     )
 
     owner = relationship("User", back_populates="contract_templates")

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
@@ -62,7 +62,7 @@ def test_submission_uses_latest_template_version_content():
         link = PublicLink(
             template_id=template.id,
             token="test-token-1",
-            expires_at=datetime.utcnow() + timedelta(hours=1),
+            expires_at=datetime.now(UTC) + timedelta(hours=1),
             is_revoked=False,
         )
         db.add(link)
@@ -140,7 +140,7 @@ def test_submission_keeps_version_locked_content_across_updates():
         link = PublicLink(
             template_id=template.id,
             token="lock-test-token",
-            expires_at=datetime.utcnow() + timedelta(hours=1),
+            expires_at=datetime.now(UTC) + timedelta(hours=1),
             is_revoked=False,
         )
         db.add(link)

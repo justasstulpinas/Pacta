@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from pydantic import ConfigDict
 
 class PublicLinkCreate(BaseModel):
     template_id: int
@@ -10,5 +11,4 @@ class PublicLinkOut(BaseModel):
     token: str
     expires_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
