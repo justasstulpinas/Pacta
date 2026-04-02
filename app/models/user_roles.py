@@ -1,6 +1,7 @@
 from sqlalchemy import Table, Column, Integer, ForeignKey
 from app.database import Base
 
+# pagalbinis failas user_roles tvarkymui
 user_roles = Table(
     "user_roles",
     Base.metadata,

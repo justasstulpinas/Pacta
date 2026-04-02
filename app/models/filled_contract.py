@@ -9,13 +9,16 @@ from sqlalchemy import (
     Text,
     String,
     CheckConstraint,
+    Enum as SAEnum,
 )
 from sqlalchemy.orm import relationship
 
 from app.database import Base
-
+from app.models.enums import SubmissionStatus
+# uzpildytu sutarciu lentele
 class FilledContract(Base):
     __tablename__ = "filled_contracts"
+    _status_values = ",".join(f"'{status.value}'" for status in SubmissionStatus)
 
     id = Column(Integer, primary_key=True, index=True)
 
@@ -39,7 +42,17 @@ class FilledContract(Base):
 
     submission_hash = Column(String,nullable= False)
 
-    status = Column(String, nullable=False, default="submitted")
+    status = Column(
+        SAEnum(
+            SubmissionStatus,
+            name="filled_contract_status",
+            native_enum=False,
+            values_callable=lambda enum: [e.value for e in enum],
+            create_constraint=False,
+        ),
+        nullable=False,
+        default=SubmissionStatus.SUBMITTED,
+    )
 
     confirmed_at = Column(DateTime, nullable=True)
 
@@ -53,7 +66,7 @@ class FilledContract(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "status IN ('submitted','confirmed','completed','cancelled')",
+            f"status IN ({_status_values})",
             name="filled_contract_status_check",
         ),
     )

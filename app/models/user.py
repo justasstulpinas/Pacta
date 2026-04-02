@@ -4,6 +4,8 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 from app.models.user_roles import user_roles  
 
+
+# user buombaze kurioje susijungia user duomenys, su userio surinktais kontaktais, sutartimis ir profiliu
 class User(Base):
     __tablename__ = "users"
 
@@ -20,5 +22,18 @@ class User(Base):
     contract_templates = relationship(
         "ContractTemplate",
         back_populates="owner",
+        cascade="all, delete-orphan",
+    )
+
+    contacts = relationship(
+        "Contact",
+        back_populates="owner",
+        cascade="all, delete-orphan",
+    )
+
+    profile = relationship(
+        "UserProfile",
+        back_populates="user",
+        uselist=False,
         cascade="all, delete-orphan",
     )

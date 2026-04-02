@@ -4,6 +4,8 @@ from sqlalchemy.orm import relationship
 
 from app.database import Base
 
+# contractu template versijos sekimas
+
 class ContractTemplateVersion(Base):
     __tablename__ = "contract_template_versions"
 

@@ -1,16 +1,12 @@
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import ForbiddenError, NotFoundError
-
-from app.models.contract_template import ContractTemplate
+from app.core.exceptions import NotFoundError
 from app.models.filled_contract import FilledContract
 from app.models.user import User
-
-from app.services.authorization import is_admin
-
 from app.repositories.template_repository import TemplateRepository
+from app.services.policy import PolicyService
 
-
+# klase patikrina ar sablonas egzituoja ir ar vartotojas turi teises
 class ContractService:
     def __init__(self, db: Session):
         self.db = db
@@ -24,19 +20,14 @@ class ContractService:
         offset: int = 0,
         status: str | None = None,
     ) -> list[FilledContract]:
-
-        template = self.repo.get_by_id(template_id) 
-
+        template = self.repo.get_by_id(template_id)
         if not template:
             raise NotFoundError("Template not found")
 
-        if template.owner_id != user.id and not is_admin(user):
-            raise ForbiddenError("Access denied")
-        submissions = self.repo.get_submissions(
+        PolicyService.check_template_access(user, template)
+        return self.repo.get_submissions(
             template_id=template_id,
             status=status,
             limit=limit,
-            offset=offset
+            offset=offset,
         )
-
-        return submissions

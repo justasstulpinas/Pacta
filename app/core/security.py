@@ -7,8 +7,10 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from app.core.exceptions import InvalidCredentialsError
 
-SECRET_KEY = "DEV_SECRET_CHANGE_LATER"
+SECRET_KEY = "DEV_SECRET"
 ALGORITHM = "HS256"
+
+# sesijos galiojimo laikas, po kurio sesija uzsidaro
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
@@ -18,14 +20,14 @@ pwd_context = CryptContext(
     schemes=["bcrypt"],
     deprecated="auto"
 )
-
+# passwordo hashinimas
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
-
+# passwordo tikrinimas
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
-
+# access tokeno kurimas, kuris bus naudojamas sessionui laikyti, tol kol baigiasi laikas
 def create_access_token(
     subject: str,
     expires_delta: Optional[timedelta] = None
@@ -53,7 +55,7 @@ def create_access_token(
         algorithm=ALGORITHM
     )
     return encoded_jwt
-
+#  sesijos tokeno dekodavimas 
 def decode_access_token(token: str) -> Dict[str, Any]:
     try:
         payload = jwt.decode(

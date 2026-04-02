@@ -1,3 +1,6 @@
+
+# exceptionai skirti skirtingoms sitaucijoms
+
 class AppError(Exception):
     pass
 

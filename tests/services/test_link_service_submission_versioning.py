@@ -4,14 +4,17 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from app.database import Base
-from app.models.role import Role  # noqa: F401
+
 from app.models.user import User
 from app.models.contract_template import ContractTemplate
 from app.models.contract_template_versions import ContractTemplateVersion
 from app.models.public_link import PublicLink
 from app.models.filled_contract import FilledContract
-from app.models.enums import ContractTemplateStatus
+from app.models.enums import ContractTemplateStatus, FilledContractStatus
+
 from app.services.link_service import LinkService
+
+from app.repositories.template_repository import TemplateRepository
 
 
 def test_submission_uses_latest_template_version_content():
@@ -68,7 +71,9 @@ def test_submission_uses_latest_template_version_content():
         db.add(link)
         db.commit()
 
-        service = LinkService(db)
+        repo = TemplateRepository(db)
+        service = LinkService(db, repo)
+
         result = service.submit_public_contract(
             token="test-token-1",
             payload={"client_name": "Alice"},
@@ -82,7 +87,7 @@ def test_submission_uses_latest_template_version_content():
             .first()
         )
 
-        assert result["status"] == "submitted"
+        assert result["status"] == FilledContractStatus.SUBMITTED.value
         assert saved is not None
         assert saved.template_version == 2
         assert saved.template_version_id == version_2.id
@@ -146,14 +151,16 @@ def test_submission_keeps_version_locked_content_across_updates():
         db.add(link)
         db.commit()
 
-        service = LinkService(db)
+        repo = TemplateRepository(db)
+        service = LinkService(db, repo)
+
         first = service.submit_public_contract(
             token="lock-test-token",
             payload={"client_name": "Alice"},
             ip="127.0.0.1",
             user_agent="pytest",
         )
-        assert first["status"] == "submitted"
+        assert first["status"] == FilledContractStatus.SUBMITTED.value
 
         version_3 = ContractTemplateVersion(
             template_id=template.id,
@@ -169,7 +176,7 @@ def test_submission_keeps_version_locked_content_across_updates():
             ip="127.0.0.1",
             user_agent="pytest",
         )
-        assert second["status"] == "submitted"
+        assert second["status"] == FilledContractStatus.SUBMITTED.value
 
         rows = db.execute(
             text(

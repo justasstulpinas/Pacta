@@ -1,73 +1,43 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
+from app.core.exceptions import BadRequestError, NotFoundError
+from app.models.enums import SubmissionStatus
 from app.models.filled_contract import FilledContract
-from app.models.contract_template import ContractTemplate
-
-from app.core.exceptions import NotFoundError, ForbiddenError, BadRequestError
-
-from app.services.policy import require_owner_or_admin
-
 from app.repositories.template_repository import TemplateRepository
+from app.services.policy import PolicyService
 
-def _get_submission(db: Session, submission_id: int) -> FilledContract:
-    repo = TemplateRepository(db)
-    submission = repo.get_submission_by_id(submission_id)
+# klase tikrina egzistavima, prieigosteses, busena ir issaugo statuso pakeitima
+class FilledContractService:
+    def __init__(self, db: Session, repo: TemplateRepository | None = None):
+        self.db = db
+        self.repo = repo or TemplateRepository(db)
 
-    if not submission:
-        raise NotFoundError("Submission not found")
-
-    return submission
-
-
-def _get_template(db: Session, template_id: int) -> ContractTemplate:
-    repo = TemplateRepository(db)
-    template = repo.get_active_by_id(template_id)
-
-    if not template:
-        raise NotFoundError("Template not found")
-
-    return template
-
-def get_submission_by_id(
-    db: Session,
-    submission_id: int,
-    current_user,
-) -> FilledContract:
-
-    submission = _get_submission(db, submission_id)
-    template = _get_template(db, submission.template_id)
-
-    require_owner_or_admin(template.owner_id, current_user)
-
-    return submission
-
-
-def confirm_submission(
-    db: Session,
-    submission_id: int,
-    current_user,
-) -> FilledContract:
-
-    submission = _get_submission(db, submission_id)
-    template = _get_template(db, submission.template_id)
-
-    require_owner_or_admin(template.owner_id, current_user)
-
-    if submission.status != "submitted":
-        raise BadRequestError("Submission cannot be confirmed")
-
-    submission.status = "confirmed"
-    submission.confirmed_at = func.now()
-
-    db.commit()
-    db.refresh(submission)
-
-    return submission
-
-def confirm_contract(
-        db,
+    def get_submission_by_id(
+        self,
         submission_id: int,
         current_user,
-):
-    return confirm_submission(db, submission_id, current_user)
+    ) -> FilledContract:
+        submission = self.repo.get_submission_by_id(submission_id)
+        if not submission:
+            raise NotFoundError("Submission not found")
+
+        PolicyService.check_submission_access(current_user, submission)
+        return submission
+
+    def confirm_submission(
+        self,
+        submission_id: int,
+        current_user,
+    ) -> FilledContract:
+        submission = self.repo.get_submission_by_id(submission_id)
+        if not submission:
+            raise NotFoundError("Submission not found")
+
+        PolicyService.check_submission_access(current_user, submission)
+        if submission.status != SubmissionStatus.SUBMITTED.value:
+            raise BadRequestError("Submission cannot be confirmed")
+
+        submission.status = SubmissionStatus.CONFIRMED.value
+        submission.confirmed_at = func.now()
+        return self.repo.save_submission(submission)

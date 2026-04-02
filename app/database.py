@@ -16,7 +16,7 @@ SessionLocal = sessionmaker(
 
 Base =declarative_base()
 
-# day2 sukurta duombaze pacta/app/pacta.db
+# sukurta duombaze pacta/app/pacta.db
 
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
@@ -25,6 +25,6 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()
 
-# day 3 per get_db() FastAPI kiekvienam http requestui sukuria atskirą sqlalchemy sesija, kuri naudojama DB operacijoms atlikti,
+# per get_db() FastAPI kiekvienam http requestui sukuria atskirą sqlalchemy sesija, kuri naudojama DB operacijoms atlikti,
 # pasibaigus requestui sesija automatiskai uzdaroma, todel kiekvienas vartotjas veiksmus atlieka tik savo sesijoje.
 #  kiekvienas useris gali requesta daryti kiek nori kartu nes visada sukuriamas naujas http requestas.

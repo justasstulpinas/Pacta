@@ -1,7 +1,11 @@
 from .user import User
 from .role import Role
+from .permission import Permission
+from .role_permission import RolePermission
 from .contract_template import ContractTemplate
 from .public_link import PublicLink
 from .filled_contract import FilledContract
 from .contract_template_versions import ContractTemplateVersion
-
+from .revoked_token import RevokedToken
+from .contact import Contact
+from .user_profile import UserProfile

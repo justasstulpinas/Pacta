@@ -1,3 +1,4 @@
+# manageris skirtas failu pavadinimu generavimui 
 class FileManager:
     @staticmethod
     def generate_filename(submission_id: int, extension: str) -> str:

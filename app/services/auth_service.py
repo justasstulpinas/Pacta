@@ -1,51 +1,57 @@
 from sqlalchemy.orm import Session
 
-from app.crud.user import get_user_by_email, get_user_by_id
-from app.crud.revoked_token import revoke_token
-
-from app.core.security import verify_password, create_access_token
-from app.core.exceptions import InvalidCredentialsError, UnauthorizedError
-
+from app.core.exceptions import InvalidCredentialsError, ValidationError
+from app.core.security import (
+    create_access_token,
+    decode_access_token,
+    hash_password,
+    verify_password,
+)
+from app.models.role import Role
+from app.repositories.revoked_token_repository import RevokedTokenRepository
+from app.repositories.user_repository import UserRepository
 from app.models.user import User
 
+# authentikavimo klase kuris yra atsakinga uz userio register, login. logout
+class AuthService:
+    def __init__(self, db: Session):
+        self.db = db
+        self.user_repo = UserRepository(db)
+        self.revoked_repo = RevokedTokenRepository(db)
 
-def login_user(db: Session, email: str, password: str) -> str:
-    user = get_user_by_email(db, email)
+    def register_user(self, email: str, password: str) -> User:
+        existing_user = self.user_repo.get_by_email(email)
+        if existing_user:
+            raise ValidationError("User already exists")
 
-    if not user:
-        raise InvalidCredentialsError("wrong email or password")
+        hashed_password = hash_password(password)
+        user = User(email=email, hashed_password=hashed_password)
+        self.db.add(user)
+        self.db.flush()
 
-    if not verify_password(password, user.hashed_password):
-        raise InvalidCredentialsError("wrong email or password")
+        creator_role = self.db.query(Role).filter(Role.name == "creator").first()
+        if creator_role:
+            user.roles.append(creator_role)
 
-    return create_access_token(subject=str(user.id))
+        self.db.commit()
+        self.db.refresh(user)
+        return user
 
+    def login_user(self, email: str, password: str) -> str:
+        user = self.user_repo.get_by_email(email)
 
-def get_current_user(db: Session, payload: dict) -> User:
-    user_id = payload.get("sub")
-    if not user_id:
-        raise InvalidCredentialsError("Invalid token payload")
+        if not user:
+            raise InvalidCredentialsError("wrong email or password")
 
-    user = get_user_by_id(db, int(user_id))
-    if not user:
-        raise InvalidCredentialsError("User not found")
+        if not verify_password(password, user.hashed_password):
+            raise InvalidCredentialsError("wrong email or password")
 
-    return user
+        return create_access_token(subject=str(user.id))
 
+    def logout_user(self, token: str) -> None:
+        payload = decode_access_token(token)
+        jti = payload.get("jti")
+        if not jti:
+            return
 
-def logout_user(db: Session, token_payload: dict) -> None:
-    jti = token_payload.get("jti")
-    if not jti:
-        return
-
-    revoke_token(db, jti)
-
-def get_current_user_from_payload(payload: dict, db) -> User:
-    user_id = payload.get("sub")
-    if not user_id:
-        raise UnauthorizedError("Invalid token")
-
-    user = db.query(User).filter(User.id == int(user_id)).first()
-    if not user:
-        raise UnauthorizedError("User not found")   
-    return user
+        self.revoked_repo.revoke(jti)

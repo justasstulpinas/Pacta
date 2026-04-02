@@ -1,10 +1,21 @@
 import pytest
-from app.services.ownership import require_ownership
 from app.core.exceptions import ForbiddenError
+from app.services.policy import require_owner
 
-def test_require_ownership_forbidden():
+
+class DummyUser:
+    def __init__(self, id):
+        self.id = id
+
+
+def test_require_owner_forbidden():
+    user = DummyUser(id=2)
+
     with pytest.raises(ForbiddenError):
-        require_ownership(resource_owner_id=1, user_id=2)
+        require_owner(resource_owner_id=1, user=user)
 
-def test_require_ownership_ok():
-    require_ownership(resource_owner_id=1, user_id=1)
+
+def test_require_owner_ok():
+    user = DummyUser(id=1)
+
+    require_owner(resource_owner_id=1, user=user)

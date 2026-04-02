@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 
 from app.database import Base
 
+# roliu duombaze, kurioje yra surasytos roles
 class Role(Base):
     __tablename__ = "roles"
 
@@ -13,4 +14,11 @@ class Role(Base):
         "User",
         secondary="user_roles",
         back_populates="roles",
+    )
+
+    permissions = relationship(
+        "Permission",
+        secondary="role_permissions",
+        back_populates="roles",
+        lazy="selectin",
     )

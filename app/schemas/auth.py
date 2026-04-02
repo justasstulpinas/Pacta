@@ -8,4 +8,4 @@ class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
-# day4 sukurtas auth.py kuris issiuncia requesta 
+# sukurtas auth.py kuris issiuncia requesta 

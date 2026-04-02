@@ -6,7 +6,6 @@ from sqlalchemy import (
     ForeignKey,
     DateTime,
     Boolean,
-    Enum,
     Index,
     CheckConstraint,
 )
@@ -15,15 +14,17 @@ from datetime import datetime, UTC
 from sqlalchemy import Enum as SAEnum
 
 from app.database import Base
-from app.models.enums import ContractTemplateStatus
+from app.models.enums import TemplateStatus
 
 
+# contractu template kurimas, (jeigu template istrinamas issitrina ir visi su ja sukurti failai)
 
 class ContractTemplate(Base):
     __tablename__ = "contract_templates"
+    _status_values = ",".join(f"'{status.value}'" for status in TemplateStatus)
     __table_args__ = (
         CheckConstraint(
-            "status IN ('draft','active','archived')",
+            f"status IN ({_status_values})",
             name="ck_contract_templates_status",
         ),
     )
@@ -45,14 +46,14 @@ class ContractTemplate(Base):
 
     status = Column(
     SAEnum(
-        ContractTemplateStatus,
+        TemplateStatus,
         name="contract_template_status",
         native_enum=False,
         values_callable=lambda enum: [e.value for e in enum], 
         create_constraint=False,  
     ),
     nullable=False,
-    default=ContractTemplateStatus.DRAFT,
+    default=TemplateStatus.DRAFT,
     index=True,
 )
 
@@ -81,4 +82,3 @@ Index(
     ContractTemplate.owner_id,
     ContractTemplate.status,
 )
-

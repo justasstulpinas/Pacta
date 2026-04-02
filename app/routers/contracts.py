@@ -6,15 +6,8 @@ from app.database import get_db
 from app.dependencies.auth import get_current_user
 
 from app.schemas.filled_contract import FilledContractResponse
-from app.services.filled_contract_service import (
-    get_submission_by_id,
-    confirm_contract,
-)
-from app.services.contract_submission_service import (
-    get_submission_document_html,
-    get_submission_document_pdf,
-    get_submission_document_docx,
-)
+from app.services.filled_contract_service import FilledContractService
+from app.services.contract_submission_service import ContractSubmissionService
 from app.files.file_manager import FileManager
 
 router = APIRouter(
@@ -32,11 +25,8 @@ def get_submission(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    submission = get_submission_by_id(
-        db=db,
-        submission_id=submission_id,
-        current_user=current_user,
-    )
+    service = FilledContractService(db)
+    submission = service.get_submission_by_id(submission_id, current_user)
     return submission
 
 
@@ -49,11 +39,8 @@ def confirm_submission(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    submission = confirm_contract(
-        db=db,
-        submision_id=submission_id,
-        current_user=current_user,
-    )
+    service = FilledContractService(db)
+    submission = service.confirm_submission(submission_id, current_user)
     return submission
 
 
@@ -63,11 +50,8 @@ def get_submission_document(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    html = get_submission_document_html(
-        db=db,
-        submission_id=submission_id,
-        current_user=current_user,
-    )
+    service = ContractSubmissionService(db)
+    html = service.get_submission_document_html(submission_id, current_user)
     return {"html": html}
 
 
@@ -77,12 +61,8 @@ def get_submission_pdf(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    pdf = get_submission_document_pdf(
-        db=db,
-        submission_id=submission_id,
-        current_user=current_user,
-    )
-
+    service = ContractSubmissionService(db)
+    pdf = service.get_submission_document_pdf(submission_id, current_user)
     filename = FileManager.generate_filename(submission_id, "pdf")
 
     return Response(
@@ -101,13 +81,9 @@ def get_submission_docx(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    docx = get_submission_document_docx(
-        db=db,
-        submission_id=submission_id,
-        current_user=current_user,
-    )
-
-    filename = FileManager.generate_filename(submission_id, "docx") 
+    service = ContractSubmissionService(db)
+    docx = service.get_submission_document_docx(submission_id, current_user)
+    filename = FileManager.generate_filename(submission_id, "docx")
 
     return Response(
         content=docx,

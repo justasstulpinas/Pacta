@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 
 
 
+# pagalbinis uzpildytu sutarciu ivesciu standartizavimo failas
 class FilledContractResponse(BaseModel):
     id: int
     template_id: int
