@@ -38,6 +38,37 @@ app.add_middleware(
 )
 
 
+def _ensure_schema_compatibility() -> None:
+    if engine.dialect.name != "sqlite":
+        return
+
+    with engine.begin() as conn:
+        filled_contract_columns = {
+            row[1]
+            for row in conn.exec_driver_sql(
+                "PRAGMA table_info(filled_contracts)"
+            ).fetchall()
+        }
+        if "template_version" not in filled_contract_columns:
+            conn.exec_driver_sql(
+                "ALTER TABLE filled_contracts ADD COLUMN template_version INTEGER"
+            )
+        if "template_version_id" not in filled_contract_columns:
+            conn.exec_driver_sql(
+                "ALTER TABLE filled_contracts ADD COLUMN template_version_id INTEGER"
+            )
+        public_link_columns = {
+            row[1]
+            for row in conn.exec_driver_sql(
+                "PRAGMA table_info(public_links)"
+            ).fetchall()
+        }
+        if "resolved_content" not in public_link_columns:
+            conn.exec_driver_sql(
+                "ALTER TABLE public_links ADD COLUMN resolved_content TEXT"
+            )
+
+
 print("TABLES:", Base.metadata.tables.keys())
 Base.metadata.create_all(bind=engine)
 _ensure_schema_compatibility()
