@@ -1,6 +1,9 @@
 # tests/api/test_authorization_dependency.py
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, FastAPI
+from fastapi.responses import JSONResponse
+from fastapi.testclient import TestClient
+import pytest
 from app.dependencies.authorization import permission_required
 from app.dependencies.auth import get_current_user
 from app.core.exceptions import ForbiddenError
@@ -35,6 +38,25 @@ def override_user_without_permission():
 
 def override_user_with_permission():
     return FakeUser(permissions=["template:create"])
+
+
+@pytest.fixture
+def client():
+    app = FastAPI()
+
+    @app.exception_handler(ForbiddenError)
+    def forbidden_handler(_, __):
+        return JSONResponse(
+            status_code=403,
+            content={"detail": "Forbidden"},
+        )
+
+    app.include_router(router)
+
+    with TestClient(app) as test_client:
+        yield test_client
+
+    app.dependency_overrides.clear()
 
 
 # ---------- TESTS ----------
