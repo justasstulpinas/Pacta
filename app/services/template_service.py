@@ -1,3 +1,4 @@
+import bleach
 from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
@@ -25,13 +26,14 @@ class TemplateService:
             owner_id=user.id,
             name=payload.name,
             description=payload.description,
-            content=payload.content,
+            content=bleach.clean(payload.content, tags=["b", "i", "u", "br", "p", "ul", "ol", "li", "strong", "h1", "h2", "h3", "em"]),
             status=TemplateStatus.DRAFT,
         )
+        
         self.repo.create_version(
             template_id=template.id,
             version_number=1,
-            content=payload.content,
+            content=bleach.clean(payload.content, tags=["b", "i", "u", "br", "p", "ul", "ol", "li", "strong", "h1", "h2", "h3", "em"]),
         )
         return self.repo.save_template(template)
 
@@ -70,7 +72,7 @@ class TemplateService:
             template.description = payload.description
         if payload.content is not None and payload.content != template.content:
             content_changed = True
-            template.content = payload.content
+            template.content = bleach.clean(payload.content, tags=["b", "i", "u", "br", "p", "ul", "ol", "li", "strong", "h1", "h2", "h3", "em"])
 
         if content_changed:
             latest_version = self.repo.get_latest_version(template.id)

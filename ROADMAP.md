@@ -16,7 +16,7 @@
 ## Phase 2 — Security Hardening (2–3 days)
 *Required before any public traffic.*
 
-- [ ] Sanitize template content before rendering HTML (use `bleach` or similar to strip `<script>`, event handlers)
+- [x] Sanitize template content before rendering HTML (use `bleach` or similar to strip `<script>`, event handlers)
 - [x] Add rate limiting to `POST /links/public/{token}/submit` (use `slowapi`)
 - [ ] Validate avatar file magic bytes, not just declared content-type
 - [x] Set `ACCESS_TOKEN_EXPIRE_MINUTES` from environment variable
