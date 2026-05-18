@@ -73,6 +73,9 @@ print("TABLES:", Base.metadata.tables.keys())
 Base.metadata.create_all(bind=engine)
 _ensure_schema_compatibility()
 
+with SessionLocal() as db:
+    seed_rbac(db)
+
 app.include_router(auth_router)
 app.include_router(templates_router)
 app.include_router(links.router)
