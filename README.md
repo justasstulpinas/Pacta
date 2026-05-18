@@ -9,11 +9,11 @@ SQLAlchemy
 SQLite (`pacta.db`)
 Pydantic
 WeasyPrint (PDF generation)
-python-docx + BeautifulSoup (DOCX generation)
+python-docx and  BeautifulSoup (DOCX generation)
 
 REQUIRIMENTS
 
-Python 3.11+ (tested with Python 3.13.7)
+Python 3.11+ (built on python 3.13.7)
 `pip`
 
 SETUP
@@ -32,10 +32,8 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 API URLS:
 
 Swagger UI: `http://127.0.0.1:8000/docs`
-ReDoc: `http://127.0.0.1:8000/redoc`
 Health check: `http://127.0.0.1:8000/health`
 NOTES
 
 App creates tables automatically on startup.
 SQLite database file is stored at `./pacta.db`.
-User profile avatars are stored in `app/uploads/`.
