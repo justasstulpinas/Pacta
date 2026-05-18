@@ -1,5 +1,6 @@
 import os
 
+
 from datetime import datetime, timedelta, UTC
 from typing import Optional, Dict, Any
 from uuid import uuid4
@@ -13,7 +14,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 
 # sesijos galiojimo laikas, po kurio sesija uzsidaro
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 

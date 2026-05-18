@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 load_dotenv()
 import app.models
@@ -20,9 +21,12 @@ from app.core.exceptions import (
     NotFoundError,
     ForbiddenError,
     UnauthorizedError,
-    BadRequestError
+    BadRequestError,
+    RateLimitExceeded
 )
 from app.core.seed import seed_rbac
+from slowapi import _rate_limit_exceeded_handler
+from app.limiter import limiter
 
 
 
@@ -30,10 +34,7 @@ app = FastAPI(title="Pacta")
 # next.js frontendo reikalai
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-],
+    allow_origins= [os.getenv("FRONT_END_URL")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -78,6 +79,8 @@ app.include_router(links.router)
 app.include_router(contacts.router)
 app.include_router(profile_router)
 app.include_router(contracts.router)
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.state.limiter = limiter
 
 uploads_dir = Path("app/uploads")
 uploads_dir.mkdir(parents=True, exist_ok=True)
@@ -133,6 +136,8 @@ def bad_request_handler(request: Request, exc: BadRequestError):
         content={"detail": "Bad request"},  
     )
 
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 @app.get("/")
 def root():
     return {"status": "OK"}
@@ -140,3 +145,6 @@ def root():
 @app.get("/health")
 def health():
     return {"health": "alive"}
+
+
+

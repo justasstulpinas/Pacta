@@ -29,6 +29,9 @@ class UnauthorizedError(AppError):
 class BadRequestError(AppError):
     pass
 
+class RateLimitExceeded(AppError):
+    pass
+
 class ValidationError(Exception):
     def __init__(self, detail):
         self.detail = detail

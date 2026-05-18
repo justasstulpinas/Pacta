@@ -2,12 +2,14 @@ from fastapi import APIRouter, Body, Depends, Request
 from sqlalchemy.orm import Session
 from typing import Dict
 
+from app.limiter import limiter
 from app.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models.user import User
 from app.schemas.public_link import PublicLinkCreate, PublicLinkOut
 from app.services.link_service import LinkService
 from app.schemas.public_template import PublicTemplateOut
+
 
 router = APIRouter(prefix="/links", tags=["links"])
 
@@ -35,6 +37,7 @@ def get_public_template(
 
 
 @router.post("/public/{token}/submit")
+@limiter.limit("5/minute")
 async def submit_public_contract(
     token: str,
     request: Request,

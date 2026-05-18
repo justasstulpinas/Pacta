@@ -17,11 +17,11 @@
 *Required before any public traffic.*
 
 - [ ] Sanitize template content before rendering HTML (use `bleach` or similar to strip `<script>`, event handlers)
-- [ ] Add rate limiting to `POST /links/public/{token}/submit` (use `slowapi`)
+- [x] Add rate limiting to `POST /links/public/{token}/submit` (use `slowapi`)
 - [ ] Validate avatar file magic bytes, not just declared content-type
-- [ ] Set `ACCESS_TOKEN_EXPIRE_MINUTES` from environment variable
+- [x] Set `ACCESS_TOKEN_EXPIRE_MINUTES` from environment variable
 - [ ] Add HTTPS redirect middleware for production
-- [ ] Lock CORS `allow_origins` to actual frontend domain (not just localhost) via env var
+- [x] Lock CORS `allow_origins` to actual frontend domain (not just localhost) via env var
 - [ ] Add a link revocation endpoint `DELETE /links/{link_id}` so owners can cancel a live link
 
 ---
