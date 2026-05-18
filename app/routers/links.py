@@ -62,6 +62,6 @@ async def submit_public_contract(
     return service.submit_public_contract(
         token=token,
         payload=payload,
-        ip=request.client.host,
+        ip=request.client.host if request.client else "unknown",
         user_agent=request.headers.get("user-agent"),
     )

@@ -1,7 +1,8 @@
+from dotenv import load_dotenv
+load_dotenv()
 import app.models
 
 from pathlib import Path
-
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -19,6 +20,7 @@ from app.core.exceptions import (
     NotFoundError,
     ForbiddenError,
     UnauthorizedError,
+    BadRequestError
 )
 from app.core.seed import seed_rbac
 
@@ -36,7 +38,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 def _ensure_schema_compatibility() -> None:
     if engine.dialect.name != "sqlite":
@@ -67,11 +68,6 @@ def _ensure_schema_compatibility() -> None:
             conn.exec_driver_sql(
                 "ALTER TABLE public_links ADD COLUMN resolved_content TEXT"
             )
-
-
-print("TABLES:", Base.metadata.tables.keys())
-Base.metadata.create_all(bind=engine)
-_ensure_schema_compatibility()
 
 with SessionLocal() as db:
     seed_rbac(db)
@@ -128,6 +124,13 @@ def validation_error_handler(request: Request, exc: ValidationError):
     return JSONResponse(
         status_code=400,
         content={"detail": exc.detail},
+    )
+
+@app.exception_handler(BadRequestError)
+def bad_request_handler(request: Request, exc: BadRequestError):
+    return JSONResponse(
+        status_code=400,
+        content={"detail": "Bad request"},  
     )
 
 @app.get("/")

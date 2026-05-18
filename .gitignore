@@ -12,3 +12,7 @@ venv/
 
 .idea/
 .vscode/
+
+.env
+
+ROADMAP.md

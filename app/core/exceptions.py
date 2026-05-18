@@ -26,6 +26,9 @@ class BadRequestError(AppError):
 class UnauthorizedError(AppError):
     pass
 
+class BadRequestError(AppError):
+    pass
+
 class ValidationError(Exception):
     def __init__(self, detail):
         self.detail = detail

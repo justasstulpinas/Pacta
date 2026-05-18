@@ -1,3 +1,5 @@
+import os
+
 from datetime import datetime, timedelta, UTC
 from typing import Optional, Dict, Any
 from uuid import uuid4
@@ -7,7 +9,7 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from app.core.exceptions import InvalidCredentialsError
 
-SECRET_KEY = "DEV_SECRET"
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 
 # sesijos galiojimo laikas, po kurio sesija uzsidaro

@@ -4,12 +4,12 @@
 *The app doesn't fully work yet. These must be done first.*
 
 - [x] Call `seed_rbac(db)` at startup in `app/main.py` — roles never get created
-- [ ] Seed the `admin:all` permission and assign it to the `admin` role in `app/core/seed.py`
-- [ ] Register `BadRequestError` exception handler in `app/main.py` — currently causes 500 on submission confirm
-- [ ] Move `SECRET_KEY` to an environment variable (`.env` file + `python-dotenv`)
-- [ ] Move `DATABASE_URL` to an environment variable
-- [ ] Guard `request.client` against `None` in `app/routers/links.py`
-- [ ] Remove `print("TABLES:", ...)` from `app/main.py`
+- [x] Seed the `admin:all` permission and assign it to the `admin` role in `app/core/seed.py`
+- [x] Register `BadRequestError` exception handler in `app/main.py` — currently causes 500 on submission confirm
+- [x] Move `SECRET_KEY` to an environment variable (`.env` file + `python-dotenv`)
+- [x] Move `DATABASE_URL` to an environment variable
+- [x] Guard `request.client` against `None` in `app/routers/links.py`
+- [x] Remove `print("TABLES:", ...)` from `app/main.py`
 
 ---
 
