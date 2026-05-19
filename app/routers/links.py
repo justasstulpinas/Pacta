@@ -68,3 +68,12 @@ async def submit_public_contract(
         ip=request.client.host if request.client else "unknown",
         user_agent=request.headers.get("user-agent"),
     )
+
+@router.delete("/{link_id}", response_model=PublicLinkOut)
+def revoke_link(
+    link_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    service = LinkService(db)
+    return service.revoke_public_link(link_id, current_user)

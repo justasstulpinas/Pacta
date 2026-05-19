@@ -12,5 +12,4 @@ class PublicLinkOut(BaseModel):
     id: int
     token: str
     expires_at: datetime
-
     model_config = ConfigDict(from_attributes=True)

@@ -6,7 +6,7 @@ from typing import Dict
 
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import ForbiddenError, NotFoundError
+from app.core.exceptions import ForbiddenError, NotFoundError, UnauthorizedError
 from app.models.enums import SubmissionStatus, TemplateStatus
 from app.models.public_link import PublicLink
 from app.models.user import User
@@ -86,6 +86,19 @@ class LinkService:
             expires_at=datetime.now(UTC) + timedelta(hours=expires_in_hours),
             resolved_content=resolved_content,
         )
+    def revoke_public_link(self, link_id: int, user: User) -> PublicLink:
+        link = (self.db.query(PublicLink)
+                .filter(PublicLink.id == link_id)
+                .first()
+                )
+        if not link:
+            raise NotFoundError("Template not found")
+        template = (self.repo.get_by_id(link.template_id))
+        if not template:
+            raise NotFoundError("Template not found")
+        PolicyService.check_template_access(user, template)
+        return self.repo.revoke_public_link(link_id)
+        
 
     def get_public_template(self, token: str) -> dict[str, str | list[str] | None]:
         link = self._get_valid_link(token)
@@ -147,3 +160,4 @@ class LinkService:
             "status": SubmissionStatus.SUBMITTED.value,
             "id": filled.id,
         }
+

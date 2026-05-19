@@ -7,6 +7,7 @@ from app.models.filled_contract import FilledContract
 from app.models.public_link import PublicLink
 from app.models.enums import TemplateStatus, SubmissionStatus
 
+
 # sablonu crud centralizavias
 class TemplateRepository:
     def __init__(self, db: Session):
@@ -153,6 +154,21 @@ class TemplateRepository:
         self.db.commit()
         self.db.refresh(link)
         return link
+    
+    def revoke_public_link(self, link_id: int) -> PublicLink | None:
+        link = (
+            self.db.query(PublicLink)
+            .filter(PublicLink.id == link_id)
+            .first() 
+        )
+        if not link:
+            return None
+        link.is_revoked = True
+        self.db.commit()
+        self.db.refresh(link)
+        return link
+    
+    
 
     def create_submission(
         self,

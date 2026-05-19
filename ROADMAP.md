@@ -22,7 +22,7 @@
 - [x] Set `ACCESS_TOKEN_EXPIRE_MINUTES` from environment variable
 - [ ] Add HTTPS redirect middleware for production
 - [x] Lock CORS `allow_origins` to actual frontend domain (not just localhost) via env var
-- [ ] Add a link revocation endpoint `DELETE /links/{link_id}` so owners can cancel a live link
+- [x] Add a link revocation endpoint `DELETE /links/{link_id}` so owners can cancel a live link
 
 ---
 
