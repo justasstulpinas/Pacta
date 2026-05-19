@@ -19,6 +19,12 @@ class ProfileService:
     MAX_AVATAR_SIZE = 5 * 1024 * 1024
     AVATAR_UPLOAD_DIR = Path("app/uploads/avatars")
     AVATAR_PUBLIC_PREFIX = "/uploads/avatars"
+    MAGIC_BYTES = {
+    "image/jpeg": (b'\xff\xd8\xff', 3),
+    "image/png": (b'\x89PNG', 4),
+    "image/webp": (b'WEBP', 4),
+}
+
 
     def __init__(self, db):
         self.db = db
@@ -111,8 +117,10 @@ class ProfileService:
         user = self.user_repo.get_by_id(current_user.id)
         if not user:
             raise NotFoundError("User not found")
-
         if content_type not in self.ALLOWED_AVATAR_MIME_TYPES:
+            raise ValidationError("Invalid image type")
+        expected_signature, length = self.MAGIC_BYTES[content_type]
+        if file_bytes[:length] != expected_signature:
             raise ValidationError("Invalid image type")
         if len(file_bytes) > self.MAX_AVATAR_SIZE:
             raise ValidationError("Image is too large")

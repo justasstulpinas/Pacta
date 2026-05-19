@@ -18,7 +18,7 @@
 
 - [x] Sanitize template content before rendering HTML (use `bleach` or similar to strip `<script>`, event handlers)
 - [x] Add rate limiting to `POST /links/public/{token}/submit` (use `slowapi`)
-- [ ] Validate avatar file magic bytes, not just declared content-type
+- [x] Validate avatar file magic bytes, not just declared content-type
 - [x] Set `ACCESS_TOKEN_EXPIRE_MINUTES` from environment variable
 - [ ] Add HTTPS redirect middleware for production
 - [x] Lock CORS `allow_origins` to actual frontend domain (not just localhost) via env var
