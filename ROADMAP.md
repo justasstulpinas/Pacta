@@ -29,10 +29,10 @@
 ## Phase 3 — Replace the Schema Hack with Proper Migrations (1 day)
 *Required before you have real user data you can't afford to lose.*
 
-- [ ] Install and configure Alembic
-- [ ] Generate initial migration from current models
-- [ ] Delete `_ensure_schema_compatibility()` from `app/main.py`
-- [ ] Document migration workflow in README
+- [x] Install and configure Alembic
+- [x] Generate initial migration from current models
+- [x] Delete `_ensure_schema_compatibility()` from `app/main.py`
+- [x] Document migration workflow in README
 
 ---
 

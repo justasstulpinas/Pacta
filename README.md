@@ -23,6 +23,24 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
+
+ALEMBIC
+New migration:
+
+```bash
+alembic revision --autogenerate -m "description"
+```
+Apply migration:
+
+```bash
+alembic upgrade head
+```
+Roll back migration:
+
+```bash
+alembic downgrade -1
+```
+
 LAUNCH
 
 ```bash
