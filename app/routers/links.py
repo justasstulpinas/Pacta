@@ -49,6 +49,7 @@ async def submit_public_contract(
         token=token,
         payload=body.payload,
         signature_image= body.signature_image,
+        submitter_email=body.submitter_email,
         ip=request.client.host if request.client else "unknown",
         user_agent=request.headers.get("user-agent"),
     )

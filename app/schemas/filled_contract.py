@@ -19,10 +19,12 @@ class FilledContractResponse(BaseModel):
     user_agent: Optional[str]
     signature_image: Optional[str] = None
     submission_hash: str
+    submitter_email: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
 class ContractSubmitRequest(BaseModel):
     payload: Dict[str, str]
     signature_image: Optional[str] = None
+    submitter_email: Optional[str] = None
 

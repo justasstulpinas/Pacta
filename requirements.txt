@@ -16,3 +16,4 @@ python-dotenv==1.2.2
 slowapi==0.1.9
 bleach==6.3.0
 alembic==1.18.4
+resend==2.30.1

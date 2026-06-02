@@ -13,6 +13,7 @@ from app.models.user import User
 from app.repositories.template_repository import TemplateRepository
 from app.services.placeholder_service import PlaceholderService
 from app.services.policy import PolicyService
+from app.services.email_services import send_submission_notification
 
 # klase skirta viseo linko kurimui kuris turi vartotojo nuraodyta galiojimo laiko tarpa
 class LinkService:
@@ -126,7 +127,8 @@ class LinkService:
         payload: Dict[str, str],
         ip: str,
         user_agent: str | None,
-        signature_image: str |None
+        signature_image: str |None,
+        submitter_email: str
     ) -> dict[str, str | int]:
         link = self._get_valid_link(token)
         template = self.repo.get_by_id(link.template_id)
@@ -155,9 +157,19 @@ class LinkService:
             ip_address=ip,
             user_agent=user_agent,
             signature_image=signature_image,
+            submitter_email=submitter_email,
             submission_hash=submission_hash,
             status=SubmissionStatus.SUBMITTED,
         )
+        try:
+            send_submission_notification(
+            owner_email=template.owner.email,
+            template_name=template.name,
+            submission_id=filled.id
+            )
+        except Exception:
+            pass
+            
         return {
             "status": SubmissionStatus.SUBMITTED.value,
             "id": filled.id,

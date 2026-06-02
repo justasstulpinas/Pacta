@@ -72,11 +72,11 @@ Choose one approach:
 ## Phase 6 — Email Notifications (2–3 days)
 *Users need to know when things happen.*
 
-- [ ] Choose email provider: Resend, SendGrid, or AWS SES
-- [ ] Send email to template owner when a new submission arrives
-- [ ] Send email to submitter confirming their submission was received (requires capturing submitter email during submit)
-- [ ] Send email to submitter when their submission is confirmed
-- [ ] Add `submitter_email` field to `FilledContract` (or capture from payload)
+- [x] Choose email provider: Resend, SendGrid, or AWS SES
+- [x] Send email to template owner when a new submission arrives
+- [x] Send email to submitter confirming their submission was received (requires capturing submitter email during submit)
+- [x] Send email to submitter when their submission is confirmed
+- [x] Add `submitter_email` field to `FilledContract` (or capture from payload)
 
 ---
 

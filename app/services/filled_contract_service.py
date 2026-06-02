@@ -6,6 +6,7 @@ from app.models.enums import SubmissionStatus
 from app.models.filled_contract import FilledContract
 from app.repositories.template_repository import TemplateRepository
 from app.services.policy import PolicyService
+from app.services.email_services import send_submission_confirmation
 
 # klase tikrina egzistavima, prieigosteses, busena ir issaugo statuso pakeitima
 class FilledContractService:
@@ -40,4 +41,10 @@ class FilledContractService:
 
         submission.status = SubmissionStatus.CONFIRMED.value
         submission.confirmed_at = func.now()
+        try:
+            send_submission_confirmation(
+            submitter_email=submission.submitter_email,
+            template_name=submission.template.name)
+        except Exception:
+            pass
         return self.repo.save_submission(submission)

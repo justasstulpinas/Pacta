@@ -44,6 +44,8 @@ class FilledContract(Base):
 
     submission_hash = Column(String,nullable= False)
 
+    submitter_email = Column(String, nullable=True)
+
     status = Column(
         SAEnum(
             SubmissionStatus,
