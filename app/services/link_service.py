@@ -126,6 +126,7 @@ class LinkService:
         payload: Dict[str, str],
         ip: str,
         user_agent: str | None,
+        signature_image: str |None
     ) -> dict[str, str | int]:
         link = self._get_valid_link(token)
         template = self.repo.get_by_id(link.template_id)
@@ -153,6 +154,7 @@ class LinkService:
             rendered_content=rendered,
             ip_address=ip,
             user_agent=user_agent,
+            signature_image=signature_image,
             submission_hash=submission_hash,
             status=SubmissionStatus.SUBMITTED,
         )

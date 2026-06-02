@@ -182,6 +182,7 @@ class TemplateRepository:
         ip_address: str,
         user_agent: str | None,
         submission_hash: str,
+        signature_image: str | None,
         status: SubmissionStatus,
     ) -> FilledContract:
         submission = FilledContract(
@@ -194,6 +195,7 @@ class TemplateRepository:
             ip_address=ip_address,
             user_agent=user_agent,
             submission_hash=submission_hash,
+            signature_image= signature_image,
             status=status.value,
         )
         self.db.add(submission)

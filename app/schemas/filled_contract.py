@@ -17,6 +17,12 @@ class FilledContractResponse(BaseModel):
     confirmed_at: Optional[datetime]
     ip_address: str
     user_agent: Optional[str]
+    signature_image: Optional[str] = None
     submission_hash: str
 
     model_config = ConfigDict(from_attributes=True)
+
+class ContractSubmitRequest(BaseModel):
+    payload: Dict[str, str]
+    signature_image: Optional[str] = None
+

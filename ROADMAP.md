@@ -55,11 +55,11 @@
 Choose one approach:
 
 **Option A — Simple (draw or type signature, stored as image):**
-- [ ] Add `signature_image` field to `FilledContract` (base64 PNG)
+- [x] Add `signature_image` field to `FilledContract` (base64 PNG)
 - [ ] Add `{{signature}}` as a reserved placeholder type
-- [ ] Frontend captures signature (draw pad or typed name rendered as image)
-- [ ] Store signature image with the submission
-- [ ] Embed signature image in PDF/DOCX export
+- [x] Frontend captures signature (draw pad or typed name rendered as image)
+- [x] Store signature image with the submission
+- [x] Embed signature image in PDF/DOCX export
 
 **Option B — Third-party legal e-sign (recommended for selling to businesses):**
 - [ ] Integrate DocuSign, HelloSign (Dropbox Sign), or Adobe Sign API

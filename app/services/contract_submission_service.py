@@ -26,6 +26,7 @@ class ContractSubmissionService:
 
         return render_contract_html(
             content=submission.rendered_content,
+            signature_image=submission.signature_image
         )
 
     def get_submission_document_pdf(

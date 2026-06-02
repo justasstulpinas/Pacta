@@ -31,6 +31,8 @@ class FilledContract(Base):
     submitted_at = Column(DateTime, default=datetime.now(UTC), nullable=False)
 
     rendered_content = Column(Text, nullable=False)
+    
+    signature_image = Column(Text, nullable=True)
 
     template_version = Column(Integer, nullable=True)
 

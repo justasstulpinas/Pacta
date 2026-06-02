@@ -9,7 +9,7 @@ from app.models.user import User
 from app.schemas.public_link import PublicLinkCreate, PublicLinkOut
 from app.services.link_service import LinkService
 from app.schemas.public_template import PublicTemplateOut
-
+from app.schemas.filled_contract import ContractSubmitRequest
 
 router = APIRouter(prefix="/links", tags=["links"])
 
@@ -41,30 +41,14 @@ def get_public_template(
 async def submit_public_contract(
     token: str,
     request: Request,
-    payload: Dict[str, str] = Body(
-        ...,
-        examples={
-            "single_field": {
-                "summary": "Single placeholder",
-                "value": {
-                    "client_name": "Alice",
-                },
-            },
-            "multiple_fields": {
-                "summary": "Multiple placeholders",
-                "value": {
-                    "client_name": "Alice",
-                    "company": "Acme",
-                },
-            },
-        },
-    ),
+    body: ContractSubmitRequest,
     db: Session = Depends(get_db),
 ):
     service = LinkService(db)
     return service.submit_public_contract(
         token=token,
-        payload=payload,
+        payload=body.payload,
+        signature_image= body.signature_image,
         ip=request.client.host if request.client else "unknown",
         user_agent=request.headers.get("user-agent"),
     )
