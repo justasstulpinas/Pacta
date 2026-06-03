@@ -111,6 +111,14 @@ class TemplateRepository:
             .all()
         )
 
+    def list_links_for_template(self, template_id: int) -> list[PublicLink]:
+        return (
+            self.db.query(PublicLink)
+            .filter(PublicLink.template_id == template_id)
+            .order_by(PublicLink.created_at.desc())
+            .all()
+        )
+
     def get_public_link_by_token(self, token: str) -> PublicLink | None:
         return (
             self.db.query(PublicLink)
@@ -123,6 +131,16 @@ class TemplateRepository:
 
     def get_valid_link(self, token: str) -> PublicLink | None:
         return self.get_public_link_by_token(token)
+
+    def list_all_submissions_for_user(self, owner_id: int) -> list[FilledContract]:
+        from app.models.contract_template import ContractTemplate
+        return (
+            self.db.query(FilledContract)
+            .join(ContractTemplate, FilledContract.template_id == ContractTemplate.id)
+            .filter(ContractTemplate.owner_id == owner_id)
+            .order_by(FilledContract.submitted_at.desc())
+            .all()
+        )
 
     def get_submission_by_id(self, submission_id: int) -> FilledContract | None:
         return (

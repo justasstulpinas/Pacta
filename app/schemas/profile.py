@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict
 class ProfilePrefillOut(BaseModel):
     name_surname: str | None
     company_name: str | None
+    company_code: str | None
     address: str | None
     phone_number: str | None
 
@@ -15,6 +16,7 @@ class ProfileOut(BaseModel):
     email: str
     profile_name: str | None
     company_name: str | None
+    company_code: str | None
     address: str | None
     phone_number: str | None
     avatar_url: str | None
@@ -28,6 +30,7 @@ class ProfileOut(BaseModel):
 class ProfileUpdate(BaseModel):
     profile_name: str | None = None
     company_name: str | None = None
+    company_code: str | None = None
     address: str | None = None
     phone_number: str | None = None
 

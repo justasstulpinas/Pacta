@@ -77,6 +77,9 @@ Choose one approach:
 - [x] Send email to submitter confirming their submission was received (requires capturing submitter email during submit)
 - [x] Send email to submitter when their submission is confirmed
 - [x] Add `submitter_email` field to `FilledContract` (or capture from payload)
+- [ ] Improve email copy — current texts are placeholder quality, rewrite to be professional and clear
+- [ ] Owner notification email must include a direct link to view the submission in the app
+- [ ] Submitter confirmation email must include a download link for the signed PDF
 
 ---
 
@@ -99,6 +102,7 @@ Choose one approach:
 ## Phase 8 — Billing & Multi-Tenancy (1–2 weeks)
 *Required to sell the product.*
 
+- [ ] **Logo on documents (Pro feature):** Allow users to upload a company logo that gets embedded at the top of every generated PDF/DOCX. Store logo URL on the user profile, inject it in `document_renderer.py` above the contract body. Gate behind a paid plan — free users see a Melno watermark instead.
 - [ ] Integrate Stripe (subscriptions)
 - [ ] Define plans: e.g. Free (3 templates, 10 submissions/month), Pro (unlimited), Business (team + API access)
 - [ ] Add `Plan` / `Subscription` model to track per-user limits

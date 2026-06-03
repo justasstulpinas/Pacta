@@ -51,6 +51,7 @@ class ProfileService:
             email=user.email,
             profile_name=profile.profile_name,
             company_name=profile.company_name,
+            company_code=profile.company_code,
             address=profile.address,
             phone_number=profile.phone_number,
             avatar_url=profile.avatar_url,
@@ -59,6 +60,7 @@ class ProfileService:
             prefill=ProfilePrefillOut(
                 name_surname=profile.profile_name,
                 company_name=profile.company_name,
+                company_code=profile.company_code,
                 address=profile.address,
                 phone_number=profile.phone_number,
             ),
@@ -87,6 +89,8 @@ class ProfileService:
             profile.profile_name = self._normalize_text(payload.profile_name)
         if "company_name" in updates:
             profile.company_name = self._normalize_text(payload.company_name)
+        if "company_code" in updates:
+            profile.company_code = self._normalize_text(payload.company_code)
         if "address" in updates:
             profile.address = self._normalize_text(payload.address)
         if "phone_number" in updates:

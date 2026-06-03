@@ -83,6 +83,20 @@ def get_submissions(
     )
 
 
+@router.post(
+    "/{template_id}/duplicate",
+    response_model=ContractTemplateOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def duplicate_template(
+    template_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    service = TemplateService(db)
+    return service.duplicate_template(template_id, current_user)
+
+
 @router.patch(
     "/{template_id}/activate",
     response_model=ContractTemplateOut,

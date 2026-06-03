@@ -54,6 +54,16 @@ async def submit_public_contract(
         user_agent=request.headers.get("user-agent"),
     )
 
+@router.get("/template/{template_id}", response_model=list[PublicLinkOut])
+def list_links(
+    template_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    service = LinkService(db)
+    return service.list_links_for_template(template_id, current_user)
+
+
 @router.delete("/{link_id}", response_model=PublicLinkOut)
 def revoke_link(
     link_id: int,

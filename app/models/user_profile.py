@@ -21,6 +21,7 @@ class UserProfile(Base):
     company_name = Column(String(255), nullable=True)
     address = Column(String(500), nullable=True)
     phone_number = Column(String(64), nullable=True)
+    company_code = Column(String(64), nullable=True)
     avatar_url = Column(String(500), nullable=True)
     created_at = Column(DateTime, nullable=False, default=datetime.now(UTC))
     updated_at = Column(

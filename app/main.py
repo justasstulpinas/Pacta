@@ -34,7 +34,7 @@ app = FastAPI(title="Pacta")
 # next.js frontendo reikalai
 app.add_middleware(
     CORSMiddleware,
-    allow_origins= [os.getenv("FRONT_END_URL")],
+    allow_origins=[os.getenv("FRONT_END_URL"), "http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

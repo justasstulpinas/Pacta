@@ -1,4 +1,5 @@
 import bleach
+from bleach.css_sanitizer import CSSSanitizer
 from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
@@ -11,7 +12,14 @@ from app.repositories.template_repository import TemplateRepository
 from app.schemas.contract_template import ContractTemplateCreate, ContractTemplateUpdate
 from app.services.policy import PolicyService
 
-# sablono sukurimo klase 
+ALLOWED_TAGS = ["b", "i", "u", "s", "br", "p", "ul", "ol", "li", "strong", "h1", "h2", "h3", "em", "blockquote"]
+ALLOWED_ATTRIBUTES = {"*": ["style"]}
+CSS_SANITIZER = CSSSanitizer(allowed_css_properties=["text-align", "font-weight", "font-style", "text-decoration"])
+
+def _clean(content: str) -> str:
+    return bleach.clean(content, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES, css_sanitizer=CSS_SANITIZER)
+
+# sablono sukurimo klase
 class TemplateService:
     def __init__(self, db: Session):
         self.db = db
@@ -26,16 +34,35 @@ class TemplateService:
             owner_id=user.id,
             name=payload.name,
             description=payload.description,
-            content=bleach.clean(payload.content, tags=["b", "i", "u", "br", "p", "ul", "ol", "li", "strong", "h1", "h2", "h3", "em"]),
+            content=_clean(payload.content),
             status=TemplateStatus.DRAFT,
         )
         
         self.repo.create_version(
             template_id=template.id,
             version_number=1,
-            content=bleach.clean(payload.content, tags=["b", "i", "u", "br", "p", "ul", "ol", "li", "strong", "h1", "h2", "h3", "em"]),
+            content=_clean(payload.content),
         )
         return self.repo.save_template(template)
+
+    def duplicate_template(self, template_id: int, user: User) -> ContractTemplate:
+        original = self.repo.get_by_id(template_id)
+        if not original:
+            raise NotFoundError("Template not found")
+        PolicyService.check_template_access(user, original)
+
+        latest = self.repo.get_latest_version(original.id)
+        content = _clean(latest.content) if latest else _clean(original.content)
+
+        copy = self.repo.create_template(
+            owner_id=user.id,
+            name=f"Kopija — {original.name}",
+            description=original.description,
+            content=content,
+            status=TemplateStatus.DRAFT,
+        )
+        self.repo.create_version(template_id=copy.id, version_number=1, content=content)
+        return self.repo.save_template(copy)
 
     def list_user_templates(self, user: User) -> list[ContractTemplate]:
         return self.repo.list_by_owner(user.id)
@@ -72,7 +99,7 @@ class TemplateService:
             template.description = payload.description
         if payload.content is not None and payload.content != template.content:
             content_changed = True
-            template.content = bleach.clean(payload.content, tags=["b", "i", "u", "br", "p", "ul", "ol", "li", "strong", "h1", "h2", "h3", "em"])
+            template.content = _clean(payload.content)
 
         if content_changed:
             latest_version = self.repo.get_latest_version(template.id)

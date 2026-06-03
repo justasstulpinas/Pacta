@@ -1,7 +1,22 @@
 {
   "permissions": {
     "allow": [
-      "Bash(pip show *)"
+      "Bash(pip show *)",
+      "Bash(mkdir -p /Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/login *)",
+      "Bash(mkdir -p \"/Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/dashboard/templates/[id]\")",
+      "Bash(mkdir -p \"/Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/dashboard/templates/[id]/link\")",
+      "Bash(mkdir -p \"/Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/sign/[token]\")",
+      "Bash(python3 -c ' *)",
+      "Bash(open /tmp/test_output.pdf)",
+      "Bash(mkdir -p \"/Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/dashboard/templates/[id]/edit\")",
+      "Bash(npm install *)",
+      "Bash(sed -i '' 's/\"en-GB\"/\"lt-LT\"/g' \\\\ *)",
+      "Bash(alembic upgrade *)"
+    ],
+    "additionalDirectories": [
+      "/Users/justasstulpinas/Pacta_front_end/pacta-frontend/src",
+      "/Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/sign",
+      "/Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/dashboard/templates/[id]"
     ]
   }
 }

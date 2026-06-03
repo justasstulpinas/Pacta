@@ -43,9 +43,9 @@ class LinkService:
         resolved: Dict[str, str] = {}
         for field in system_fields:
             if field == "sys_current_date":
-                resolved[field] = now.date().isoformat()
+                resolved[field] = now.strftime("%Y-%m-%d")
             elif field == "sys_current_datetime":
-                resolved[field] = now.isoformat()
+                resolved[field] = now.strftime("%Y-%m-%d %H:%M")
         return resolved
 
     def create_public_link(
@@ -87,6 +87,13 @@ class LinkService:
             expires_at=datetime.now(UTC) + timedelta(hours=expires_in_hours),
             resolved_content=resolved_content,
         )
+    def list_links_for_template(self, template_id: int, user: User) -> list[PublicLink]:
+        template = self.repo.get_by_id(template_id)
+        if not template:
+            raise NotFoundError("Template not found")
+        PolicyService.check_template_access(user, template)
+        return self.repo.list_links_for_template(template_id)
+
     def revoke_public_link(self, link_id: int, user: User) -> PublicLink:
         link = (self.db.query(PublicLink)
                 .filter(PublicLink.id == link_id)

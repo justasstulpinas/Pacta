@@ -14,6 +14,22 @@ class FilledContractService:
         self.db = db
         self.repo = repo or TemplateRepository(db)
 
+    def list_all_for_user(self, current_user) -> list:
+        submissions = self.repo.list_all_submissions_for_user(current_user.id)
+        return [
+            {
+                "id": s.id,
+                "template_id": s.template_id,
+                "template_name": s.template.name if s.template else f"#{s.template_id}",
+                "submitted_data": s.submitted_data,
+                "status": s.status,
+                "submitted_at": s.submitted_at,
+                "confirmed_at": s.confirmed_at,
+                "submitter_email": s.submitter_email,
+            }
+            for s in submissions
+        ]
+
     def get_submission_by_id(
         self,
         submission_id: int,

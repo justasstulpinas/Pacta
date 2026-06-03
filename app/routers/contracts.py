@@ -5,7 +5,7 @@ from fastapi.responses import Response
 from app.database import get_db
 from app.dependencies.auth import get_current_user
 
-from app.schemas.filled_contract import FilledContractResponse
+from app.schemas.filled_contract import FilledContractResponse, FilledContractListItem
 from app.services.filled_contract_service import FilledContractService
 from app.services.contract_submission_service import ContractSubmissionService
 from app.files.file_manager import FileManager
@@ -14,6 +14,18 @@ router = APIRouter(
     prefix="/contracts",
     tags=["contracts"],
 )
+
+
+@router.get(
+    "/submissions",
+    response_model=list[FilledContractListItem],
+)
+def list_all_submissions(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = FilledContractService(db)
+    return service.list_all_for_user(current_user)
 
 
 @router.get(
