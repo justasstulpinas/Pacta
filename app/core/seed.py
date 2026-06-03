@@ -1,11 +1,15 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import exc
 
 from app.models.role import Role
 from app.models.permission import permission
 
-#  seedo funkcija kuri sukuria pradinius duomenis, jei useris pries tai neturejo duomenu
 def seed_rbac(db: Session):
-    if db.query(Role).count() > 0:
+    try:
+        if db.query(Role).count() > 0:
+            return
+    except exc.ProgrammingError:
+        db.rollback()
         return
     link_create = permission(code="link:create")
     admin_all = permission(code="admin:all")
