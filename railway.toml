@@ -2,6 +2,6 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+startCommand = "export LD_LIBRARY_PATH=/nix/var/nix/profiles/per-user/root/profile/lib:$LD_LIBRARY_PATH && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
 healthcheckPath = "/health"
 restartPolicyType = "on_failure"
