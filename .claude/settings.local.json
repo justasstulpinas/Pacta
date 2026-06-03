@@ -11,7 +11,11 @@
       "Bash(mkdir -p \"/Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/dashboard/templates/[id]/edit\")",
       "Bash(npm install *)",
       "Bash(sed -i '' 's/\"en-GB\"/\"lt-LT\"/g' \\\\ *)",
-      "Bash(alembic upgrade *)"
+      "Bash(alembic upgrade *)",
+      "Bash(git pull *)",
+      "Bash(git push *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ],
     "additionalDirectories": [
       "/Users/justasstulpinas/Pacta_front_end/pacta-frontend/src",
