@@ -1,2 +1,2 @@
 [phases.setup]
-nixPkgs = ["pango", "cairo", "gdk-pixbuf", "gobject-introspection", "glib", "libffi", "shared-mime-info", "fontconfig", "freetype"]
+nixPkgs = ["python311", "pango", "cairo", "gdk-pixbuf", "gobject-introspection", "glib", "libffi", "shared-mime-info", "fontconfig", "freetype"]
