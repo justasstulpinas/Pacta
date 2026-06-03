@@ -1,4 +1,4 @@
-PACTA API
+MELNO API
 
 Backend API for contract template creation with open link signing, backend can generate HTML, DOCX, PDF files from signed contracts, user must be legged in to send a request.
 
