@@ -34,8 +34,11 @@ app = FastAPI(title="Pacta")
 # next.js frontendo reikalai
 _origins = [o for o in [
     os.getenv("FRONT_END_URL"),
+    "https://www.melno.app",
+    "https://melno.app",
+    "https://melno-frontend-git-main-justas-stulpinas-projects.vercel.app",
+    "https://melno-frontend-193effs7n-justas-stulpinas-projects.vercel.app",
     "http://localhost:3000",
-    "http://localhost:5173",
 ] if o]
 
 app.add_middleware(
