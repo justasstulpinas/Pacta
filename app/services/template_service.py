@@ -12,9 +12,12 @@ from app.repositories.template_repository import TemplateRepository
 from app.schemas.contract_template import ContractTemplateCreate, ContractTemplateUpdate
 from app.services.policy import PolicyService
 
-ALLOWED_TAGS = ["b", "i", "u", "s", "br", "p", "ul", "ol", "li", "strong", "h1", "h2", "h3", "em", "blockquote"]
+ALLOWED_TAGS = ["b", "i", "u", "s", "br", "p", "ul", "ol", "li", "strong", "h1", "h2", "h3", "em", "blockquote", "span"]
 ALLOWED_ATTRIBUTES = {"*": ["style"]}
-CSS_SANITIZER = CSSSanitizer(allowed_css_properties=["text-align", "font-weight", "font-style", "text-decoration"])
+CSS_SANITIZER = CSSSanitizer(allowed_css_properties=[
+    "text-align", "font-weight", "font-style", "text-decoration",
+    "color", "font-size", "font-family", "line-height",
+])
 
 def _clean(content: str) -> str:
     return bleach.clean(content, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES, css_sanitizer=CSS_SANITIZER)
