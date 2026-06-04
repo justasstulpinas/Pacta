@@ -1,11 +1,14 @@
 
-# failaas skirtas parodyti kaip surinkta informacija per  contract submission service bus isdeliota i html 
+import html as _html
+
 def render_contract_html(
     *,
     content: str,
     signature_image: str | None = None,
     signer_name: str | None = None,
 ) -> str:
+    content = _html.unescape(content)
+
     html = f"""
 <!DOCTYPE html>
 <html lang="en">

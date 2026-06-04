@@ -1,3 +1,4 @@
+import html as _html
 from docx import Document
 from docx.shared import Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -163,6 +164,7 @@ def _set_para_alignment(para, style_str: str):
 
 
 def render_docx_from_html(html: str) -> bytes:
+    html = _html.unescape(html)
     soup = BeautifulSoup(html, "html.parser")
     document = Document()
 
