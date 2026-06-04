@@ -3,7 +3,8 @@
 def render_contract_html(
     *,
     content: str,
-    signature_image: str | None =None,
+    signature_image: str | None = None,
+    signer_name: str | None = None,
 ) -> str:
     html = f"""
 <!DOCTYPE html>
@@ -55,12 +56,28 @@ body {{
 .signature-block {{
     margin-top: 40px;
     page-break-inside: avoid;
+    display: flex;
+    align-items: flex-end;
+    gap: 40px;
 }}
 
-.signature-block img {{
-    max-width: 300px;
+.signature-left {{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}}
+
+.signature-left img {{
+    max-width: 240px;
     height: auto;
     border-bottom: 1px solid #ccc;
+    display: block;
+}}
+
+.signature-left .signer-name {{
+    font-size: 13px;
+    margin-top: 4px;
+    color: #333;
 }}
 
 .footer {{
@@ -92,7 +109,12 @@ body {{
 <div class="contract-body">
 {content}
 </div>
-{f'<div class="signature-block"><img src="data:image/png;base64,{signature_image}" alt="Signature" /></div>' if signature_image else ''}
+{f'''<div class="signature-block">
+  <div class="signature-left">
+    <img src="data:image/png;base64,{signature_image}" alt="Signature" />
+    {f'<span class="signer-name">{signer_name}</span>' if signer_name else ''}
+  </div>
+</div>''' if signature_image else ''}
 
 
 <div class="footer">

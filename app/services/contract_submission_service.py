@@ -24,9 +24,15 @@ class ContractSubmissionService:
             current_user,
         )
 
+        signer_name = (
+            submission.submitted_data.get("client_name")
+            or submission.submitted_data.get("client_vardas")
+            or submission.submitter_email
+        )
         return render_contract_html(
             content=submission.rendered_content,
-            signature_image=submission.signature_image
+            signature_image=submission.signature_image,
+            signer_name=signer_name,
         )
 
     def get_submission_document_pdf(
