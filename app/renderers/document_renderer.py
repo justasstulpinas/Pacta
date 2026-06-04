@@ -31,6 +31,13 @@ body {{
     word-break: break-word;
     overflow-wrap: anywhere;
     font-size: 16px;
+    font-family: 'Times New Roman', Times, serif !important;
+}}
+
+.contract-body p,
+.contract-body li,
+.contract-body span,
+.contract-body div {{
     font-family: 'Times New Roman', Times, serif;
 }}
 
