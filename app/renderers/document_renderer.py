@@ -14,7 +14,7 @@ def render_contract_html(
 
 <style>
 body {{
-    font-family: 'Times New Roman', Times, serif;
+    font-family: 'Liberation Serif', 'Times New Roman', Times, serif;
     margin: 0;
     padding: 0;
     line-height: 1.6;
@@ -31,14 +31,14 @@ body {{
     word-break: break-word;
     overflow-wrap: anywhere;
     font-size: 16px;
-    font-family: 'Times New Roman', Times, serif !important;
+    font-family: 'Liberation Serif', 'Times New Roman', Times, serif !important;
 }}
 
 .contract-body p,
 .contract-body li,
 .contract-body span,
 .contract-body div {{
-    font-family: 'Times New Roman', Times, serif;
+    font-family: 'Liberation Serif', 'Times New Roman', Times, serif;
 }}
 
 .contract-body h1 {{ font-size: 2em; font-weight: bold; margin: 0.5em 0; }}

@@ -15,7 +15,8 @@
       "Bash(git pull *)",
       "Bash(git push *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(git commit *)"
     ],
     "additionalDirectories": [
       "/Users/justasstulpinas/Pacta_front_end/pacta-frontend/src",
