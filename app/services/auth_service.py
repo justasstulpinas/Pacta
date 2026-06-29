@@ -103,7 +103,7 @@ class AuthService:
         ).first()
         if not reset_token:
             raise ValidationError("Invalid or expired reset link")
-        if reset_token.expires_at < datetime.now(UTC):
+        if reset_token.expires_at < datetime.utcnow():
             raise ValidationError("Reset link has expired")
         user = self.user_repo.get_by_id(reset_token.user_id)
         user.hashed_password = hash_password(new_password)
