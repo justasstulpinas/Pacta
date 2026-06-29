@@ -77,25 +77,27 @@ Choose one approach:
 - [x] Send email to submitter confirming their submission was received (requires capturing submitter email during submit)
 - [x] Send email to submitter when their submission is confirmed
 - [x] Add `submitter_email` field to `FilledContract` (or capture from payload)
+- [x] Email verification on registration
+- [x] Forgot password / reset password full flow with email
 - [ ] Improve email copy — current texts are placeholder quality, rewrite to be professional and clear
 - [ ] Owner notification email must include a direct link to view the submission in the app
-- [ ] Submitter confirmation email must include a download link for the signed PDF
+- [x] Submitter confirmation email must include a download link for the signed PDF
 
 ---
 
 ## Phase 7 — Frontend (2–4 weeks if building yourself)
 *Next.js frontend is in progress.*
 
-- [ ] Auth flow: register, login, logout, token refresh
-- [ ] Template editor with placeholder hint UI (`{{field_name}}` helper)
-- [ ] Template list with status badges and lifecycle actions (activate, archive, delete)
-- [ ] Public link generator with prefill form for `owner_*` fields
-- [ ] Shareable link page: template viewer + public submit form
-- [ ] Submission inbox per template with status filtering
-- [ ] Submission detail view with confirm/cancel actions
-- [ ] One-click PDF and DOCX download
-- [ ] Profile page with avatar upload
-- [ ] Contact list management
+- [x] Auth flow: register, login, logout, token refresh
+- [x] Template editor with placeholder hint UI (`{{field_name}}` helper)
+- [x] Template list with status badges and lifecycle actions (activate, archive, delete)
+- [x] Public link generator with prefill form for `owner_*` fields
+- [x] Shareable link page: template viewer + public submit form
+- [x] Submission inbox per template with status filtering
+- [x] Submission detail view with confirm/cancel actions
+- [x] One-click PDF and DOCX download
+- [x] Profile page with avatar upload
+- [x] Contact list management
 
 ---
 
@@ -119,7 +121,7 @@ Choose one approach:
 - [ ] Add request ID to each request (middleware)
 - [ ] Integrate Sentry for error tracking
 - [ ] Add a real health check endpoint that pings the DB (not just `{"health": "alive"}`)
-- [ ] Switch from SQLite to PostgreSQL for production (update `DATABASE_URL`, drop `check_same_thread`)
+- [x] Switch from SQLite to PostgreSQL for production (update `DATABASE_URL`, drop `check_same_thread`)
 - [ ] Containerize with Docker + `docker-compose` (app + db)
 - [ ] Set up CI: run `pytest` on every push (GitHub Actions)
 
@@ -130,7 +132,7 @@ Choose one approach:
 - [ ] Write a proper README with screenshots and a 60-second setup guide
 - [ ] Add API documentation notes for each endpoint (FastAPI `summary=` and `description=`)
 - [ ] Create a Terms of Service and Privacy Policy (required to charge money)
-- [ ] Set up a production domain with SSL (Vercel/Railway/Render/Fly.io)
+- [x] Set up a production domain with SSL (Vercel/Railway/Render/Fly.io)
 - [ ] Seed a demo account with example templates for new users
 - [ ] Smoke-test the full flow end-to-end on production before announcing
 
@@ -142,7 +144,15 @@ Choose one approach:
 Phase 1 → 2 → 3 → 5 (Option A) → 6 → 7 → Phase 4 (in parallel with 7) → 9 → 8 → 10
 ```
 
-The backend is architecturally sound — the structure is clean and the hard design decisions
-(versioning, snapshots, RBAC, placeholder engine) are already made. You're roughly 30–40%
-of the way to a shippable product. The biggest remaining bets are e-signature, email,
-frontend completion, and billing.
+The backend is architecturally sound and the frontend is essentially feature-complete.
+Phases 1–3 are fully done. Phase 5 (e-signature Option A) and Phase 6 (email) are largely
+done with only polish remaining. Phase 7 (frontend) is complete.
+
+You're roughly 60–65% of the way to a shippable product. The remaining bets are:
+
+1. **Phase 4** — cancel/complete endpoints, pagination, contact deletion. Small but needed.
+2. **Billing** (Phase 8) — required to charge money, 1–2 weeks of work.
+3. **Observability** (Phase 9) — Sentry + structured logging, needed to know when things break.
+4. **Launch prep** (Phase 10) — ToS, Privacy Policy, demo account, README.
+
+The product is demo-ready today and production-safe (PostgreSQL is live on Railway).
