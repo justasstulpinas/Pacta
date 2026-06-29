@@ -7,5 +7,6 @@ from .public_link import PublicLink
 from .filled_contract import FilledContract
 from .contract_template_versions import ContractTemplateVersion
 from .revoked_token import RevokedToken
+from .password_reset_token import PasswordResetToken
 from .contact import Contact
 from .user_profile import UserProfile

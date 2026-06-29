@@ -6,8 +6,9 @@ from app.core.security import oauth2_scheme
 from app.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models.user import User
-from app.schemas.auth import LoginRequest, UserCreate
 from app.services.auth_service import AuthService
+from app.schemas.auth import LoginRequest, UserCreate, VerifyEmailRequest, ForgotPasswordRequest, ResetPasswordRequest
+
 
 router = APIRouter(
     prefix="/auth",
@@ -76,3 +77,32 @@ def logout(
     service = AuthService(db)
     service.logout_user(token)
     return {"status": "logged_out"}
+
+@router.post("/verify-email")
+def verify_email(
+    data: VerifyEmailRequest,
+    db: Session = Depends(get_db),
+):
+    service = AuthService(db)
+    service.verify_email(data.token)
+    return {"status": "email_verified"}
+
+
+@router.post("/forgot-password")
+def forgot_password(
+    data: ForgotPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    service = AuthService(db)
+    service.forgot_password(data.email)
+    return {"status": "ok"}
+
+
+@router.post("/reset-password")
+def reset_password(
+    data: ResetPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    service = AuthService(db)
+    service.reset_password(data.token, data.new_password)
+    return {"status": "password_reset"}

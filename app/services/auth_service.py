@@ -1,3 +1,9 @@
+import secrets
+from datetime import datetime, timedelta, UTC
+from app.models.password_reset_token import PasswordResetToken
+from app.services.email_services import send_email_verification, send_password_reset
+
+
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import InvalidCredentialsError, ValidationError
@@ -34,6 +40,14 @@ class AuthService:
             user.roles.append(creator_role)
 
         self.db.commit()
+        token = secrets.token_urlsafe(32)
+        user.verification_token = token
+        self.db.commit()
+        try:
+            send_email_verification(user.email, token)
+        except Exception:
+            pass
+
         self.db.refresh(user)
         return user
 
@@ -55,3 +69,43 @@ class AuthService:
             return
 
         self.revoked_repo.revoke(jti)
+
+    def verify_email(self, token: str)-> None:
+        user = self.db.query(User).filter(User.verification_token == token).first()
+        if not user:
+            raise ValidationError("Invalid or expired verification link")
+        user.is_verified = True
+        user.verification_token = None
+        self.db.commit()
+        
+    def forgot_password(self, email: str) -> None:
+        user = self.user_repo.get_by_email(email)
+        if not user:
+            return
+        token = secrets.token_urlsafe(32)
+        reset_token = PasswordResetToken(
+            user_id= user.id,
+            token= token,
+            expires_at=datetime.now(UTC) + timedelta(hours=1),
+            used=False,
+        )
+        self.db.add(reset_token)
+        self.db.commit()
+        try:
+            send_password_reset(user.email, token)
+        except Exception:
+            pass
+
+    def reset_password(self, token: str, new_password: str) -> None:
+        reset_token = self.db.query(PasswordResetToken).filter(
+            PasswordResetToken.token == token,
+            PasswordResetToken.used == False,
+        ).first()
+        if not reset_token:
+            raise ValidationError("Invalid or expired reset link")
+        if reset_token.expires_at < datetime.now(UTC):
+            raise ValidationError("Reset link has expired")
+        user = self.user_repo.get_by_id(reset_token.user_id)
+        user.hashed_password = hash_password(new_password)
+        reset_token.used = True
+        self.db.commit()

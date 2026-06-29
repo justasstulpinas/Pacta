@@ -6,7 +6,8 @@ from app.models.enums import SubmissionStatus
 from app.models.filled_contract import FilledContract
 from app.repositories.template_repository import TemplateRepository
 from app.services.policy import PolicyService
-from app.services.email_services import send_submission_confirmation
+from app.services.email_services import send_contract_signed_pdf
+
 
 # klase tikrina egzistavima, prieigosteses, busena ir issaugo statuso pakeitima
 class FilledContractService:
@@ -57,10 +58,17 @@ class FilledContractService:
 
         submission.status = SubmissionStatus.CONFIRMED.value
         submission.confirmed_at = func.now()
+        saved = self.repo.save_submission(submission)
         try:
-            send_submission_confirmation(
-            submitter_email=submission.submitter_email,
-            template_name=submission.template.name)
+            if submission.submitter_email:
+                from app.services.contract_submission_service import ContractSubmissionService
+                service = ContractSubmissionService(self.db, self.repo)
+                pdf = service.get_submission_document_pdf(submission.id, current_user)
+                send_contract_signed_pdf(
+                    submitter_email=submission.submitter_email,
+                    template_name=submission.template.name,
+                    pdf_bytes=pdf,
+                    )
         except Exception:
             pass
-        return self.repo.save_submission(submission)
+        return saved
