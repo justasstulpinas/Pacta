@@ -138,6 +138,17 @@ Choose one approach:
 
 ---
 
+## v1.1 — Post-Launch Additions
+
+Features to build after the initial launch, once real users are in the product.
+
+- [ ] **vCard export** — "Eksportuoti kontaktą" button on contact page, downloads a `.vcf` file that works with iOS/Android address book and Google Contacts import (~2h)
+- [ ] **Google Contacts sync** — via Google People API, requires OAuth2 per user (~2–3 days)
+- [ ] **Mobile-friendly signing page** — responsive layout for the public sign/review page
+- [ ] **Template search/filter** — filter by status and name on the templates list
+
+---
+
 ## Suggested Order If Solo
 
 ```
