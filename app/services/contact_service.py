@@ -64,8 +64,8 @@ class ContactService:
             raise ValidationError("At least one field must be provided")
         return normalized
 
-    def list_contacts(self, user: User) -> list[Contact]:
-        return self.repo.list_by_owner(user.id)
+    def list_contacts(self, user: User, limit: int= 50, offset: int=0) -> list[Contact]:
+        return self.repo.list_by_owner(user.id, limit=limit, offset=offset)
 
     def create_contact(self, payload: ContactCreate, user: User) -> Contact:
         normalized = self._normalize_create_payload(payload)
@@ -76,7 +76,19 @@ class ContactService:
             address=normalized["address"],
             email=normalized["email"],
         )
-
+    def delete_contact(
+        self, 
+        contact_id: int, 
+        user: User
+    ) -> Contact:
+        contact = self.repo.get_by_id_and_owner(contact_id, user.id)
+        if not contact:
+            raise NotFoundError("Contact not found")
+       
+        self.db.delete(contact)
+        self.db.commit()
+        
+    
     def update_contact(
         self,
         contact_id: int,

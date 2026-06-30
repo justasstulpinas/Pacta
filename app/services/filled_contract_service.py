@@ -72,3 +72,39 @@ class FilledContractService:
         except Exception:
             pass
         return saved
+    
+    def cancel_submission(
+            self,
+            submission_id: int,
+            current_user,
+    ) -> FilledContract:
+        submission = self.repo.get_submission_by_id(submission_id)
+        if not submission:
+            raise NotFoundError("Submission not found")
+        
+        PolicyService.check_submission_access(current_user, submission)
+        if submission.status not in (SubmissionStatus.SUBMITTED.value, SubmissionStatus.CONFIRMED.value):
+            raise BadRequestError("Submission can not be canceled")
+         
+        submission.status = SubmissionStatus.CANCELLED.value
+        saved = self.repo.save_submission(submission)
+        return saved
+        
+    def complete_submission(
+            self,
+            submission_id: int,
+            current_user,
+    ) -> FilledContract:
+        submission = self.repo.get_submission_by_id(submission_id)
+        if not submission:
+            raise NotFoundError("Submission not found")
+        
+        PolicyService.check_submission_access(current_user, submission)
+        if submission.status != SubmissionStatus.CONFIRMED.value:
+            raise BadRequestError("Submission must be confirmed to be completed")
+         
+        submission.status = SubmissionStatus.COMPLETED.value
+        saved = self.repo.save_submission(submission)
+        return saved
+        
+

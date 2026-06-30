@@ -105,3 +105,29 @@ def get_submission_docx(
             "Content-Length": str(len(docx)),
         },
     )
+
+@router.post(
+    "/submissions/{submission_id}/cancel",
+    response_model=FilledContractResponse,
+)
+def cancel_submission(
+    submission_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = FilledContractService(db)
+    submission = service.cancel_submission(submission_id, current_user)
+    return submission
+
+@router.post(
+    "/submissions/{submission_id}/complete",
+    response_model=FilledContractResponse,
+)
+def complete_submission(
+    submission_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = FilledContractService(db)
+    submission = service.complete_submission(submission_id, current_user)
+    return submission

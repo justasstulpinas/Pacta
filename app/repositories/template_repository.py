@@ -31,14 +31,14 @@ class TemplateRepository:
             return None
         return template
 
-    def list_by_owner(self, owner_id: int) -> list[ContractTemplate]:
+    def list_by_owner(self, owner_id: int, limit: int=50, offset: int=0) -> list[ContractTemplate]:
         return (
             self.db.query(ContractTemplate)
             .filter(
                 ContractTemplate.owner_id == owner_id,
                 ContractTemplate.is_deleted == False,
             )
-            .all()
+            .offset(offset).limit(limit).all()
         )
 
     def create_template(

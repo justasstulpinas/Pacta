@@ -32,7 +32,8 @@
       "Bash(dig @atlas.dns-parking.com melno.app A +short)",
       "Bash(dig @hyperion.dns-parking.com melno.app A +short)",
       "Bash(dig @ina1.registrar.eu melno.app A +short)",
-      "Bash(dig @ina1.registrar.eu melno.app NS +short)"
+      "Bash(dig @ina1.registrar.eu melno.app NS +short)",
+      "Bash(railway variables *)"
     ],
     "additionalDirectories": [
       "/Users/justasstulpinas/Pacta_front_end/pacta-frontend/src",

@@ -67,8 +67,9 @@ class TemplateService:
         self.repo.create_version(template_id=copy.id, version_number=1, content=content)
         return self.repo.save_template(copy)
 
-    def list_user_templates(self, user: User) -> list[ContractTemplate]:
-        return self.repo.list_by_owner(user.id)
+    def list_user_templates(self, user: User, limit: int = 50, offset: int = 0) -> list[ContractTemplate]:
+        return self.repo.list_by_owner(user.id, limit=limit, offset=offset)
+
 
     def get_template_by_id(
         self,

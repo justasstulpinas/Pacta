@@ -18,5 +18,4 @@ class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
 
-
 # sukurtas auth.py kuris issiuncia requesta 

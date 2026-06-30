@@ -7,7 +7,7 @@ class ContactRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def list_by_owner(self, owner_id: int) -> list[Contact]:
+    def list_by_owner(self, owner_id: int, limit: int= 50, offset: int=0) -> list[Contact]:
         return (
             self.db.query(Contact)
             .filter(Contact.owner_id == owner_id)
@@ -15,7 +15,7 @@ class ContactRepository:
                 Contact.updated_at.desc(),
                 Contact.created_at.desc(),
             )
-            .all()
+            .limit(limit).offset(offset).all()
         )
     def get_by_id_and_owner(self, contact_id: int, owner_id: int) -> Contact | None:
         return (

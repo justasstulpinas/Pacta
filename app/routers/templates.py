@@ -43,9 +43,12 @@ def create_template(
 def list_templates(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    limit: int = 50,
+    offset: int = 0
 ):
+
     service = TemplateService(db)
-    return service.list_user_templates(current_user)
+    return service.list_user_templates(current_user, limit=limit, offset=offset)
 
 
 @router.get(
