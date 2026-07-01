@@ -143,7 +143,7 @@ Choose one approach:
 
 Features to build after the initial launch, once real users are in the product.
 
-- [ ] **vCard export** — "Eksportuoti kontaktą" button on contact page, downloads a `.vcf` file that works with iOS/Android address book and Google Contacts import (~2h)
+- [x] **vCard export** — "Eksportuoti kontaktą" button on contact page, downloads a `.vcf` file that works with iOS/Android address book and Google Contacts import (~2h)
 - [ ] **Google Contacts sync** — via Google People API, requires OAuth2 per user (~2–3 days)
 - [ ] **Template search/filter** — filter by status and name on the templates list
 - [ ] **DOCX import (Pro)** — user uploads existing `.docx` contract, backend converts to HTML via python-docx, loads into editor. User manually adds `{{placeholders}}`. `.docx` only, no `.doc` support. (~3–4 days)
