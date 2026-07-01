@@ -45,10 +45,35 @@ def get_users(db: Session = Depends(get_db)):
             "id": u.id,
             "email": u.email,
             "is_verified": u.is_verified,
-            "roles":[r.name for r in u.roles],
-         }
-         for u in users
+            "is_suspended": u.is_suspended,
+            "roles": [r.name for r in u.roles],
+            "last_login": u.last_login,
+            "template_count": len(u.contract_templates),
+        }
+        for u in users
     ]
+
+
+@router.patch("/users/{user_id}/suspend")
+def toggle_suspend_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        from app.core.exceptions import NotFoundError
+        raise NotFoundError("User not found")
+    user.is_suspended = not user.is_suspended
+    db.commit()
+    return {"id": user.id, "is_suspended": user.is_suspended}
+
+
+@router.delete("/users/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        from app.core.exceptions import NotFoundError
+        raise NotFoundError("User not found")
+    db.delete(user)
+    db.commit()
+    return {"status": "deleted"}
 
 @router.get("/templates")
 def get_templates(db: Session = Depends(get_db)):

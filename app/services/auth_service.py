@@ -60,6 +60,9 @@ class AuthService:
         if not verify_password(password, user.hashed_password):
             raise InvalidCredentialsError("wrong email or password")
 
+        if user.is_suspended:
+            raise InvalidCredentialsError("This account has been suspended")
+
         user.last_login = datetime.utcnow()
         self.db.commit()
 

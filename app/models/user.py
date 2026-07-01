@@ -15,6 +15,7 @@ class User(Base):
     is_verified = Column(Boolean,default=False, nullable=False)
     verification_token = Column(String, nullable=True)
     last_login = Column(DateTime, nullable=True)
+    is_suspended = Column(Boolean, default=False, nullable=False)
 
     roles = relationship(
         "Role",
