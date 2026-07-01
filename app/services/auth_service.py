@@ -60,9 +60,6 @@ class AuthService:
         if not verify_password(password, user.hashed_password):
             raise InvalidCredentialsError("wrong email or password")
 
-        if user.is_suspended:
-            raise InvalidCredentialsError("This account has been suspended")
-
         if not user.is_verified and user.created_at:
             age = datetime.utcnow() - user.created_at.replace(tzinfo=None)
             if age.days >= 7:

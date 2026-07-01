@@ -126,39 +126,27 @@ def get_submissions(db: Session = Depends(get_db)):
 
 
 @router.get("/analytics/submissions")
-def analytics_submissions(db: Session = Depends(get_db)):
-    since = datetime.utcnow() - timedelta(days=30)
-    rows = (
-        db.query(cast(FilledContract.submitted_at, Date), func.count(FilledContract.id))
-        .filter(FilledContract.submitted_at >= since)
-        .group_by(cast(FilledContract.submitted_at, Date))
-        .order_by(cast(FilledContract.submitted_at, Date))
-        .all()
-    )
+def analytics_submissions(days: int = 30, db: Session = Depends(get_db)):
+    query = db.query(cast(FilledContract.submitted_at, Date), func.count(FilledContract.id))
+    if days > 0:
+        query = query.filter(FilledContract.submitted_at >= datetime.utcnow() - timedelta(days=days))
+    rows = query.group_by(cast(FilledContract.submitted_at, Date)).order_by(cast(FilledContract.submitted_at, Date)).all()
     return [{"date": str(row[0]), "count": row[1]} for row in rows]
 
 
 @router.get("/analytics/user-growth")
-def analytics_user_growth(db: Session = Depends(get_db)):
-    since = datetime.utcnow() - timedelta(days=30)
-    rows = (
-        db.query(cast(UserProfile.created_at, Date), func.count(UserProfile.id))
-        .filter(UserProfile.created_at >= since)
-        .group_by(cast(UserProfile.created_at, Date))
-        .order_by(cast(UserProfile.created_at, Date))
-        .all()
-    )
+def analytics_user_growth(days: int = 30, db: Session = Depends(get_db)):
+    query = db.query(cast(UserProfile.created_at, Date), func.count(UserProfile.id))
+    if days > 0:
+        query = query.filter(UserProfile.created_at >= datetime.utcnow() - timedelta(days=days))
+    rows = query.group_by(cast(UserProfile.created_at, Date)).order_by(cast(UserProfile.created_at, Date)).all()
     return [{"date": str(row[0]), "count": row[1]} for row in rows]
 
 
 @router.get("/analytics/active-users")
-def analytics_active_users(db: Session = Depends(get_db)):
-    since = datetime.utcnow() - timedelta(days=30)
-    rows = (
-        db.query(cast(User.last_login, Date), func.count(User.id))
-        .filter(User.last_login >= since)
-        .group_by(cast(User.last_login, Date))
-        .order_by(cast(User.last_login, Date))
-        .all()
-    )
+def analytics_active_users(days: int = 30, db: Session = Depends(get_db)):
+    query = db.query(cast(User.last_login, Date), func.count(User.id))
+    if days > 0:
+        query = query.filter(User.last_login >= datetime.utcnow() - timedelta(days=days))
+    rows = query.group_by(cast(User.last_login, Date)).order_by(cast(User.last_login, Date)).all()
     return [{"date": str(row[0]), "count": row[1]} for row in rows]
