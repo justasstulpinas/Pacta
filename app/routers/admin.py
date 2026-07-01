@@ -8,6 +8,7 @@ from app.models.user import User
 from app.models.contract_template import ContractTemplate
 from app.models.filled_contract import FilledContract
 from app.models.enums import SubmissionStatus
+from sqlalchemy.orm import joinedload
 
 
 router = APIRouter(
@@ -57,4 +58,25 @@ def get_templates(db: Session = Depends(get_db)):
             "owner_id": t.owner_id,
         }
         for t in templates
+    ]
+
+@router.get("/submissions")
+def get_submissions(db: Session = Depends(get_db)):
+    submissions = (
+        db.query(FilledContract)
+        .options(joinedload(FilledContract.template).joinedload(ContractTemplate.owner))
+        .all()
+    )
+    return [
+        {
+            "id": s.id,
+            "status": s.status,
+            "submitter_email": s.submitter_email,
+            "submitted_at": s.submitted_at,
+            "confirmed_at": s.confirmed_at,
+            "template_id": s.template_id,
+            "template_name": s.template.name if s.template else None,
+            "owner_email": s.template.owner.email if s.template and s.template.owner else None,
+        }
+        for s in submissions
     ]
