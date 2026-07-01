@@ -19,7 +19,9 @@ class PlaceholderService:
         public_fields = sorted(
             field
             for field in fields
-            if not field.startswith("owner_") and not field.startswith("sys_")
+            if not field.startswith("owner_")
+            and not field.startswith("sys_")
+            and field != "signature"
         )
         return owner_fields, system_fields, public_fields
 
