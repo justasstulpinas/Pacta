@@ -117,6 +117,35 @@ def send_submission_confirmation(
         "html": _base(content),
     })
 
+def send_contract_declined(owner_email: str, template_name: str):
+    content = f"""
+      <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#ffffff;">
+        Sutartis atmesta
+      </h1>
+      <p style="margin:0 0 24px;font-size:14px;color:#a1a1aa;line-height:1.6;">
+        Klientas peržiūrėjo ir <strong style="color:#f87171;">atmetė</strong> jūsų sutartį pagal šabloną
+        <strong style="color:#ffffff;">{template_name}</strong>.
+        Sutartis nebuvo pasirašyta.
+      </p>
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+        <tr><td style="background:#1c0a0a;border:1px solid #450a0a;border-radius:8px;padding:16px;">
+          <p style="margin:0;font-size:14px;color:#f87171;line-height:1.6;">
+            ✗ &nbsp;Klientas atsisakė pasirašyti sutartį.
+          </p>
+        </td></tr>
+      </table>
+      <p style="margin:0;font-size:12px;color:#52525b;line-height:1.6;">
+        Galite susisiekti su klientu ir išsiaiškinti priežastis, arba sukurti naują nuorodą.
+      </p>
+    """
+    resend.Emails.send({
+        "from": FROM,
+        "to": [owner_email],
+        "subject": f"Sutartis atmesta — {template_name}",
+        "html": _base(content),
+    })
+
+
 def send_verification_reminder(email: str, token: str):
     verification_url = f"{APP_URL}/verify-email?token={token}"
     content = f"""

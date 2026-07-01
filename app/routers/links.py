@@ -36,6 +36,15 @@ def get_public_template(
     return service.get_public_template(token)
 
 
+@router.post("/public/{token}/decline")
+def decline_public_contract(
+    token: str,
+    db: Session = Depends(get_db),
+):
+    service = LinkService(db)
+    return service.decline_public_contract(token)
+
+
 @router.post("/public/{token}/submit")
 @limiter.limit("5/minute")
 async def submit_public_contract(

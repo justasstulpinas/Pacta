@@ -13,7 +13,7 @@ from app.models.user import User
 from app.repositories.template_repository import TemplateRepository
 from app.services.placeholder_service import PlaceholderService
 from app.services.policy import PolicyService
-from app.services.email_services import send_submission_notification
+from app.services.email_services import send_submission_notification, send_contract_declined
 
 # klase skirta viseo linko kurimui kuris turi vartotojo nuraodyta galiojimo laiko tarpa
 class LinkService:
@@ -127,6 +127,20 @@ class LinkService:
             "content": link_content,
             "fields": public_fields,
         }
+
+    def decline_public_contract(self, token: str) -> dict:
+        link = self._get_valid_link(token)
+        template = self.repo.get_by_id(link.template_id)
+        if not template or template.status != TemplateStatus.ACTIVE.value:
+            raise NotFoundError("Template not found")
+        try:
+            send_contract_declined(
+                owner_email=template.owner.email,
+                template_name=template.name,
+            )
+        except Exception:
+            pass
+        return {"status": "declined"}
 
     def submit_public_contract(
         self,
