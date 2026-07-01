@@ -91,6 +91,7 @@ body {{
 }}
 
 @page {{
+    size: A4;
     margin: 24mm 16mm 20mm 16mm;
     @bottom-center {{
         content: "Sugeneruota su Melno";
