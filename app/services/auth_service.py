@@ -63,6 +63,19 @@ class AuthService:
         if user.is_suspended:
             raise InvalidCredentialsError("This account has been suspended")
 
+        if not user.is_verified and user.created_at:
+            age = datetime.utcnow() - user.created_at.replace(tzinfo=None)
+            if age.days >= 7:
+                user.is_suspended = True
+                self.db.commit()
+                raise InvalidCredentialsError("Account suspended — email not verified within 7 days")
+            if age.days == 6 and user.verification_token:
+                try:
+                    from app.services.email_services import send_verification_reminder
+                    send_verification_reminder(user.email, user.verification_token)
+                except Exception:
+                    pass
+
         user.last_login = datetime.utcnow()
         self.db.commit()
 

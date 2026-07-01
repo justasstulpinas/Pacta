@@ -117,6 +117,32 @@ def send_submission_confirmation(
         "html": _base(content),
     })
 
+def send_verification_reminder(email: str, token: str):
+    verification_url = f"{APP_URL}/verify-email?token={token}"
+    content = f"""
+      <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#ffffff;">
+        Liko 24 valandos patvirtinti el. paštą
+      </h1>
+      <p style="margin:0 0 24px;font-size:14px;color:#a1a1aa;line-height:1.6;">
+        Jūsų „Melno" paskyra bus <strong style="color:#f87171;">sustabdyta</strong> po 24 valandų, jei nepatvirtinsite el. pašto adreso.
+      </p>
+      <a href="{verification_url}"
+         style="display:inline-block;background:#ffffff;color:#09090b;font-size:14px;font-weight:600;
+                text-decoration:none;padding:12px 24px;border-radius:8px;">
+        Patvirtinti el. paštą →
+      </a>
+      <p style="margin:28px 0 0;font-size:12px;color:#52525b;line-height:1.6;">
+        Jei tai ne jūsų paskyra — tiesiog ignoruokite šį laišką.
+      </p>
+    """
+    resend.Emails.send({
+        "from": FROM,
+        "to": [email],
+        "subject": "⚠️ Patvirtinkite el. paštą — liko 24h",
+        "html": _base(content),
+    })
+
+
 def send_email_verification(email: str, token: str):
     verification_url = f"{APP_URL}/verify-email?token={token}"
     content = f"""

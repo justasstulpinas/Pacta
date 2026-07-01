@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from sqlalchemy import Column, DateTime, Integer, String, Boolean
 from sqlalchemy.orm import relationship
 
@@ -16,6 +17,7 @@ class User(Base):
     verification_token = Column(String, nullable=True)
     last_login = Column(DateTime, nullable=True)
     is_suspended = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=True)
 
     roles = relationship(
         "Role",
