@@ -10,10 +10,13 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.database import engine, Base, SessionLocal
+
 from app.routers.auth import router as auth_router
 from app.routers import links, contracts, contacts
 from app.routers.profile import router as profile_router
 from app.routers.templates import router as templates_router
+from app.routers import admin
+
 from app.core.exceptions import ValidationError
 from app.core.exceptions import (
     InvalidCredentialsError,
@@ -57,6 +60,7 @@ app.include_router(links.router)
 app.include_router(contacts.router)
 app.include_router(profile_router)
 app.include_router(contracts.router)
+app.include_router(admin.router)
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.state.limiter = limiter
 
