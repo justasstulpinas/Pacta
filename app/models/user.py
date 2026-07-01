@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, DateTime, Integer, String, Boolean
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -14,6 +14,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_verified = Column(Boolean,default=False, nullable=False)
     verification_token = Column(String, nullable=True)
+    last_login = Column(DateTime, nullable=True)
 
     roles = relationship(
         "Role",

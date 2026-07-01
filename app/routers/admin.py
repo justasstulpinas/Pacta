@@ -4,11 +4,15 @@ from sqlalchemy import func
 
 from app.database import get_db
 from app.dependencies.authorization import permission_required
+from datetime import datetime, timedelta
+
 from app.models.user import User
+from app.models.user_profile import UserProfile
 from app.models.contract_template import ContractTemplate
 from app.models.filled_contract import FilledContract
 from app.models.enums import SubmissionStatus
 from sqlalchemy.orm import joinedload
+from sqlalchemy import cast, Date
 
 
 router = APIRouter(
@@ -80,3 +84,42 @@ def get_submissions(db: Session = Depends(get_db)):
         }
         for s in submissions
     ]
+
+
+@router.get("/analytics/submissions")
+def analytics_submissions(db: Session = Depends(get_db)):
+    since = datetime.utcnow() - timedelta(days=30)
+    rows = (
+        db.query(cast(FilledContract.submitted_at, Date), func.count(FilledContract.id))
+        .filter(FilledContract.submitted_at >= since)
+        .group_by(cast(FilledContract.submitted_at, Date))
+        .order_by(cast(FilledContract.submitted_at, Date))
+        .all()
+    )
+    return [{"date": str(row[0]), "count": row[1]} for row in rows]
+
+
+@router.get("/analytics/user-growth")
+def analytics_user_growth(db: Session = Depends(get_db)):
+    since = datetime.utcnow() - timedelta(days=30)
+    rows = (
+        db.query(cast(UserProfile.created_at, Date), func.count(UserProfile.id))
+        .filter(UserProfile.created_at >= since)
+        .group_by(cast(UserProfile.created_at, Date))
+        .order_by(cast(UserProfile.created_at, Date))
+        .all()
+    )
+    return [{"date": str(row[0]), "count": row[1]} for row in rows]
+
+
+@router.get("/analytics/active-users")
+def analytics_active_users(db: Session = Depends(get_db)):
+    since = datetime.utcnow() - timedelta(days=30)
+    rows = (
+        db.query(cast(User.last_login, Date), func.count(User.id))
+        .filter(User.last_login >= since)
+        .group_by(cast(User.last_login, Date))
+        .order_by(cast(User.last_login, Date))
+        .all()
+    )
+    return [{"date": str(row[0]), "count": row[1]} for row in rows]

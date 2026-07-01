@@ -60,6 +60,9 @@ class AuthService:
         if not verify_password(password, user.hashed_password):
             raise InvalidCredentialsError("wrong email or password")
 
+        user.last_login = datetime.utcnow()
+        self.db.commit()
+
         return create_access_token(subject=str(user.id))
 
     def logout_user(self, token: str) -> None:
