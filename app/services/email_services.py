@@ -66,7 +66,7 @@ def send_submission_notification(
         </td></tr>
       </table>
 
-      <a href="{APP_URL}/dashboard/contracts"
+      <a href="{APP_URL}/dashboard/submissions/{submission_id}"
          style="display:inline-block;background:#ffffff;color:#09090b;font-size:14px;font-weight:600;
                 text-decoration:none;padding:12px 24px;border-radius:8px;">
         Peržiūrėti sutartį →
