@@ -7,6 +7,7 @@ from app.models.user import User
 
 from app.schemas.contract_template import (
     ContractTemplateCreate,
+    ContractTemplateListItem,
     ContractTemplateOut,
     ContractTemplateUpdate
 )
@@ -38,17 +39,18 @@ def create_template(
 
 @router.get(
     "",
-    response_model=list[ContractTemplateOut],
+    response_model=list[ContractTemplateListItem],
 )
 def list_templates(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     limit: int = 50,
-    offset: int = 0
+    offset: int = 0,
+    status: str | None = None,
+    name: str | None = None,
 ):
-
     service = TemplateService(db)
-    return service.list_user_templates(current_user, limit=limit, offset=offset)
+    return service.list_user_templates(current_user, limit=limit, offset=offset, status=status, name=name)
 
 
 @router.get(

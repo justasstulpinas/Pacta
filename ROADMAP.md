@@ -42,10 +42,10 @@
 - [ ] Add `POST /contracts/submissions/{id}/cancel` endpoint (set status → `cancelled`)
 - [ ] Add `POST /contracts/submissions/{id}/complete` endpoint (set status → `completed`)
 - [ ] Add `DELETE /contacts/{contact_id}` endpoint
-- [ ] Replace `ContractTemplateOut` on the list endpoint with `ContractTemplateListItem` (don't return full content on list)
-- [ ] Add pagination (`limit`/`offset`) to templates list and contacts list
-- [ ] Add template search/filter by `status` and `name` query params
-- [ ] Fix conftest: remove duplicate `user`/`test_user` fixtures
+- [x] Replace `ContractTemplateOut` on the list endpoint with `ContractTemplateListItem` (don't return full content on list)
+- [x] Add pagination (`limit`/`offset`) to templates list and contacts list
+- [x] Add template search/filter by `status` and `name` query params
+- [x] Fix conftest: remove duplicate `user`/`test_user` fixtures
 
 ---
 

@@ -43,11 +43,7 @@ def user(db):
 
 
 @pytest.fixture
-def test_user(db):
-    user = User(email="test@test.com", hashed_password="x")
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+def test_user(db, user):
     return user
 
 @pytest.fixture
