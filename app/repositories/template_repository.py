@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import datetime
 
 from app.models.contract_template import ContractTemplate
@@ -16,6 +16,7 @@ class TemplateRepository:
     def get_by_id(self, template_id: int) -> ContractTemplate | None:
         return (
             self.db.query(ContractTemplate)
+            .options(joinedload(ContractTemplate.owner))
             .filter(
                 ContractTemplate.id == template_id,
                 ContractTemplate.is_deleted == False,

@@ -1,8 +1,11 @@
 import hashlib
 import json
+import logging
 import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Dict
+
+logger = logging.getLogger(__name__)
 
 from sqlalchemy.orm import Session
 
@@ -139,7 +142,7 @@ class LinkService:
                 template_name=template.name,
             )
         except Exception:
-            pass
+            logger.exception("Failed to send contract declined notification for link %s", link.id)
         return {"status": "declined"}
 
     def submit_public_contract(
@@ -184,12 +187,12 @@ class LinkService:
         )
         try:
             send_submission_notification(
-            owner_email=template.owner.email,
-            template_name=template.name,
-            submission_id=filled.id
+                owner_email=template.owner.email,
+                template_name=template.name,
+                submission_id=filled.id,
             )
         except Exception:
-            pass
+            logger.exception("Failed to send submission notification for submission %s", filled.id)
             
         return {
             "status": SubmissionStatus.SUBMITTED.value,
