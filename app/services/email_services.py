@@ -176,24 +176,24 @@ def send_email_verification(email: str, token: str):
     verification_url = f"{APP_URL}/verify-email?token={token}"
     content = f"""
       <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#ffffff;">
-        Confirm your email
+        Patvirtinkite el. paštą
       </h1>
       <p style="margin:0 0 24px;font-size:14px;color:#a1a1aa;line-height:1.6;">
-        Click the button below to verify your email address and activate your Melno account.
+        Paspauskite žemiau esantį mygtuką, kad patvirtintumėte el. pašto adresą ir aktyvuotumėte „Melno" paskyrą.
       </p>
       <a href="{verification_url}"
          style="display:inline-block;background:#ffffff;color:#09090b;font-size:14px;font-weight:600;
                 text-decoration:none;padding:12px 24px;border-radius:8px;">
-        Verify email →
+        Patvirtinti el. paštą →
       </a>
       <p style="margin:28px 0 0;font-size:12px;color:#52525b;line-height:1.6;">
-        This link expires in 24 hours. If you didn't create a Melno account, ignore this email.
+        Nuoroda galioja 24 valandas. Jei nekūrėte „Melno" paskyros — tiesiog ignoruokite šį laišką.
       </p>
     """
     resend.Emails.send({
         "from": FROM,
         "to": [email],
-        "subject": "Verify your Melno email",
+        "subject": "Patvirtinkite el. paštą — Melno",
         "html": _base(content),
     })
 
@@ -201,24 +201,24 @@ def send_password_reset(email: str, token: str):
     reset_url = f"{APP_URL}/reset-password?token={token}"
     content = f"""
       <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#ffffff;">
-        Reset your password
+        Slaptažodžio atstatymas
       </h1>
       <p style="margin:0 0 24px;font-size:14px;color:#a1a1aa;line-height:1.6;">
-        We received a request to reset your Melno password. Click the button below to choose a new one.
+        Gavome prašymą atstatyti jūsų „Melno" slaptažodį. Paspauskite žemiau esantį mygtuką ir pasirinkite naują.
       </p>
       <a href="{reset_url}"
          style="display:inline-block;background:#ffffff;color:#09090b;font-size:14px;font-weight:600;
                 text-decoration:none;padding:12px 24px;border-radius:8px;">
-        Reset password →
+        Atstatyti slaptažodį →
       </a>
       <p style="margin:28px 0 0;font-size:12px;color:#52525b;line-height:1.6;">
-        This link expires in 1 hour. If you didn't request a password reset, ignore this email.
+        Nuoroda galioja 1 valandą. Jei neprašėte atstatyti slaptažodžio — tiesiog ignoruokite šį laišką.
       </p>
     """
     resend.Emails.send({
         "from": FROM,
         "to": [email],
-        "subject": "Reset your Melno password",
+        "subject": "Slaptažodžio atstatymas — Melno",
         "html": _base(content),
     })
     
@@ -230,27 +230,27 @@ def send_contract_signed_pdf(
     import base64
     content = f"""
       <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#ffffff;">
-        Your signed contract
+        Pasirašyta sutartis
       </h1>
       <p style="margin:0 0 24px;font-size:14px;color:#a1a1aa;line-height:1.6;">
-        Your contract <strong style="color:#ffffff;">{template_name}</strong> has been confirmed.
-        A copy of the signed document is attached to this email.
+        Jūsų sutartis <strong style="color:#ffffff;">{template_name}</strong> patvirtinta.
+        Pasirašyto dokumento kopija pridėta prie šio laiško.
       </p>
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
         <tr><td style="background:#052e16;border:1px solid #14532d;border-radius:8px;padding:16px;">
           <p style="margin:0;font-size:14px;color:#4ade80;line-height:1.6;">
-            ✓ &nbsp;Your contract is now active.
+            ✓ &nbsp;Sutartis įsigalioja nuo patvirtinimo momento.
           </p>
         </td></tr>
       </table>
       <p style="margin:0;font-size:12px;color:#52525b;line-height:1.6;">
-        Keep this email for your records. Contact the other party if you have any questions.
+        Išsaugokite šį laišką kaip patvirtinimą. Jei turite klausimų — susisiekite su sutarties išdavėju.
       </p>
     """
     resend.Emails.send({
         "from": FROM,
         "to": [submitter_email],
-        "subject": f"Your signed contract — {template_name}",
+        "subject": f"Pasirašyta sutartis — {template_name}",
         "html": _base(content),
         "attachments": [{
             "filename": f"{template_name}.pdf",

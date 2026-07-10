@@ -79,8 +79,8 @@ Choose one approach:
 - [x] Add `submitter_email` field to `FilledContract` (or capture from payload)
 - [x] Email verification on registration
 - [x] Forgot password / reset password full flow with email
-- [ ] Improve email copy — current texts are placeholder quality, rewrite to be professional and clear
-- [ ] Owner notification email must include a direct link to view the submission in the app
+- [x] Improve email copy — unified to Lithuanian, professional tone
+- [x] Owner notification email must include a direct link to view the submission in the app
 - [x] Submitter confirmation email must include a download link for the signed PDF
 
 ---
