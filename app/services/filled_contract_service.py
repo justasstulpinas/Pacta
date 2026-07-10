@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
@@ -7,6 +9,8 @@ from app.models.filled_contract import FilledContract
 from app.repositories.template_repository import TemplateRepository
 from app.services.policy import PolicyService
 from app.services.email_services import send_contract_signed_pdf
+
+logger = logging.getLogger(__name__)
 
 
 # klase tikrina egzistavima, prieigosteses, busena ir issaugo statuso pakeitima
@@ -56,21 +60,25 @@ class FilledContractService:
         if submission.status != SubmissionStatus.SUBMITTED.value:
             raise BadRequestError("Submission cannot be confirmed")
 
+        submitter_email = submission.submitter_email
+        template_name = submission.template.name
+
         submission.status = SubmissionStatus.CONFIRMED.value
         submission.confirmed_at = func.now()
         saved = self.repo.save_submission(submission)
+
         try:
-            if submission.submitter_email:
+            if submitter_email:
                 from app.services.contract_submission_service import ContractSubmissionService
                 service = ContractSubmissionService(self.db, self.repo)
                 pdf = service.get_submission_document_pdf(submission.id, current_user)
                 send_contract_signed_pdf(
-                    submitter_email=submission.submitter_email,
-                    template_name=submission.template.name,
+                    submitter_email=submitter_email,
+                    template_name=template_name,
                     pdf_bytes=pdf,
-                    )
+                )
         except Exception:
-            pass
+            logger.exception("Failed to send signed PDF email for submission %s", submission.id)
         return saved
     
     def cancel_submission(
