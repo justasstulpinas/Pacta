@@ -20,7 +20,7 @@
 - [x] Add rate limiting to `POST /links/public/{token}/submit` (use `slowapi`)
 - [x] Validate avatar file magic bytes, not just declared content-type
 - [x] Set `ACCESS_TOKEN_EXPIRE_MINUTES` from environment variable
-- [ ] Add HTTPS redirect middleware for production
+- [x] Add HTTPS redirect middleware for production
 - [x] Lock CORS `allow_origins` to actual frontend domain (not just localhost) via env var
 - [x] Add a link revocation endpoint `DELETE /links/{link_id}` so owners can cancel a live link
 
@@ -118,10 +118,10 @@ Choose one approach:
 ## Phase 9 — Observability & Ops (3–5 days)
 *You need to know when things break in production.*
 
-- [ ] Replace `print()` calls with structured logging (`structlog` or Python `logging`)
+- [x] Replace `print()` calls with structured logging (`structlog` or Python `logging`)
 - [ ] Add request ID to each request (middleware)
 - [ ] Integrate Sentry for error tracking
-- [ ] Add a real health check endpoint that pings the DB (not just `{"health": "alive"}`)
+- [x] Add a real health check endpoint that pings the DB (not just `{"health": "alive"}`)
 - [x] Switch from SQLite to PostgreSQL for production (update `DATABASE_URL`, drop `check_same_thread`)
 - [ ] Containerize with Docker + `docker-compose` (app + db)
 - [ ] Set up CI: run `pytest` on every push (GitHub Actions)

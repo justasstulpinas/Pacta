@@ -1,3 +1,4 @@
+import logging
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -6,8 +7,14 @@ import app.models
 from pathlib import Path
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s — %(message)s",
+)
 
 from app.database import engine, Base, SessionLocal
 
@@ -43,6 +50,9 @@ _origins = [o for o in [
     "https://melno-frontend-193effs7n-justas-stulpinas-projects.vercel.app",
     "http://localhost:3000",
 ] if o]
+
+if os.getenv("ENVIRONMENT") == "production":
+    app.add_middleware(HTTPSRedirectMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -126,7 +136,12 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"health": "alive"}
+    try:
+        with SessionLocal() as db:
+            db.execute(__import__("sqlalchemy").text("SELECT 1"))
+        return {"health": "alive", "db": "ok"}
+    except Exception as e:
+        return JSONResponse(status_code=503, content={"health": "degraded", "db": str(e)})
 
 
 
