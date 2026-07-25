@@ -1,13 +1,63 @@
 
+import re
 import html as _html
+
+_SIGNATURE_RE = re.compile(r"\{\{\s*signature\s*\}\}")
+_USER_SIGNATURE_RE = re.compile(r"\{\{\s*user_signature\s*\}\}")
+
+
+def _sig_block(signature_image: str, signer_name: str | None) -> str:
+    name_html = f'<span class="signer-name">{signer_name}</span>' if signer_name else ""
+    return (
+        f'<div class="signature-block">'
+        f'<div class="signature-left">'
+        f'<img src="data:image/png;base64,{signature_image}" alt="Signature" />'
+        f'{name_html}'
+        f'</div></div>'
+    )
+
 
 def render_contract_html(
     *,
     content: str,
     signature_image: str | None = None,
     signer_name: str | None = None,
+    user_signature_image: str | None = None,
+    logo_image: str | None = None,
+    logo_x: float = 5.0,
+    logo_y: float = 5.0,
+    logo_w: float = 15.0,
+    client_sig_x: float | None = None,
+    client_sig_y: float | None = None,
+    user_sig_x: float | None = None,
+    user_sig_y: float | None = None,
 ) -> str:
     content = _html.unescape(content)
+
+    # User signature — fixed position if coordinates set, else inline
+    fixed_user_sig = ""
+    if user_sig_x is not None and user_signature_image:
+        fixed_user_sig = f'<div style="position:fixed;left:{user_sig_x}%;top:{user_sig_y}%;">{_sig_block(user_signature_image, None)}</div>'
+        content = _USER_SIGNATURE_RE.sub("", content)
+    elif _USER_SIGNATURE_RE.search(content):
+        if user_signature_image:
+            content = _USER_SIGNATURE_RE.sub(_sig_block(user_signature_image, None), content)
+        else:
+            content = _USER_SIGNATURE_RE.sub("", content)
+
+    # Client signature — fixed position if coordinates set, else inline
+    fixed_client_sig = ""
+    inline_placed = False
+    if client_sig_x is not None and signature_image:
+        fixed_client_sig = f'<div style="position:fixed;left:{client_sig_x}%;top:{client_sig_y}%;">{_sig_block(signature_image, signer_name)}</div>'
+        content = _SIGNATURE_RE.sub("", content)
+        inline_placed = True
+    elif _SIGNATURE_RE.search(content):
+        if signature_image:
+            content = _SIGNATURE_RE.sub(_sig_block(signature_image, signer_name), content)
+            inline_placed = True
+        else:
+            content = _SIGNATURE_RE.sub("", content)
 
     html = f"""
 <!DOCTYPE html>
@@ -17,6 +67,11 @@ def render_contract_html(
 <title>Contract</title>
 
 <style>
+html, body {{
+    height: 100%;
+    min-height: 297mm;
+}}
+
 body {{
     font-family: 'Liberation Serif', 'Times New Roman', Times, serif;
     margin: 0;
@@ -109,16 +164,14 @@ body {{
 </head>
 
 <body>
+{f'<img src="data:image/png;base64,{logo_image}" style="position:fixed;left:{logo_x}%;top:{logo_y}%;width:{logo_w}%;max-width:{logo_w}%;height:auto;object-fit:contain;z-index:100;" alt="Logo" />' if logo_image else ''}
+{fixed_user_sig}
+{fixed_client_sig}
 <div class="contract-container">
 <div class="contract-body">
 {content}
 </div>
-{f'''<div class="signature-block">
-  <div class="signature-left">
-    <img src="data:image/png;base64,{signature_image}" alt="Signature" />
-    {f'<span class="signer-name">{signer_name}</span>' if signer_name else ''}
-  </div>
-</div>''' if signature_image else ''}
+{_sig_block(signature_image, signer_name) if signature_image and not inline_placed else ''}
 
 
 <div class="footer">
