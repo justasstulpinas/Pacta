@@ -170,68 +170,39 @@ async def upload_docx(
 
 
 def _docx_to_tiptap_html(data: bytes) -> str:
+    import re
     import html as _html
     from docx import Document
     from docx.enum.text import WD_ALIGN_PARAGRAPH
-    from docx.oxml.ns import qn
 
     doc = Document(io.BytesIO(data))
     parts: list[str] = []
 
+    def _clean(text: str) -> str:
+        # Strip any embedded HTML tags left over from HTML-in-docx documents
+        return re.sub(r"<[^>]+>", "", text)
+
     def _run_html(run) -> str:
-        text = _html.escape(run.text)
-        if not text:
+        text = _html.escape(_clean(run.text))
+        if not text.strip():
             return ""
-
-        styles: list[str] = []
-
-        # Font color
-        try:
-            rgb = run.font.color.rgb
-            if rgb:
-                styles.append(f"color: #{rgb};")
-        except Exception:
-            pass
-
-        # Font size
-        try:
-            if run.font.size:
-                pt = run.font.size.pt
-                styles.append(f"font-size: {pt}pt;")
-        except Exception:
-            pass
-
-        # Font family
-        try:
-            name = run.font.name or (
-                run._element.find(qn("w:rFonts")) is not None
-                and run._element.find(qn("w:rFonts")).get(qn("w:ascii"))
-            )
-            if name and isinstance(name, str):
-                styles.append(f"font-family: '{name}', serif;")
-        except Exception:
-            pass
-
-        if styles:
-            text = f'<span style="{" ".join(styles)}">{text}</span>'
         if run.bold:
             text = f"<strong>{text}</strong>"
         if run.italic:
             text = f"<em>{text}</em>"
         if run.underline:
             text = f"<u>{text}</u>"
-
         return text
 
     for para in doc.paragraphs:
-        if not para.text.strip():
+        raw = _clean(para.text).strip()
+        if not raw:
             parts.append("<p></p>")
             continue
 
         style_name = (para.style.name or "").lower()
-        content = "".join(_run_html(r) for r in para.runs)
+        content = "".join(_run_html(r) for r in para.runs) or _html.escape(raw)
 
-        # Alignment
         align_style = ""
         try:
             if para.alignment == WD_ALIGN_PARAGRAPH.CENTER:
