@@ -184,4 +184,53 @@ async def upload_docx(
         style_map=style_map,
     )
 
-    return {"html": result.value}
+    return {"html": _clean_docx_html(result.value)}
+
+
+def _clean_docx_html(html: str) -> str:
+    from bs4 import BeautifulSoup, NavigableString, Tag
+
+    soup = BeautifulSoup(html, "html.parser")
+
+    BLOCK = {"p", "div", "h1", "h2", "h3", "h4", "h5", "h6",
+              "ul", "ol", "li", "table", "tr", "td", "th", "blockquote"}
+
+    # Fix double-quoted font names inside style attributes (e.g. font-family: "Times New Roman")
+    for tag in soup.find_all(style=True):
+        fixed = tag["style"].replace('"', "'")
+        tag["style"] = fixed
+
+    # Wrap orphan top-level inline elements / text nodes in <p> tags
+    children = list(soup.children)
+    has_orphans = any(
+        (isinstance(c, NavigableString) and c.strip()) or
+        (isinstance(c, Tag) and c.name not in BLOCK)
+        for c in children
+    )
+
+    if has_orphans:
+        new_soup = BeautifulSoup("", "html.parser")
+        bucket: list = []
+
+        def flush(target):
+            if not bucket:
+                return
+            p = Tag(name="p")
+            for el in bucket:
+                p.append(el.__copy__() if hasattr(el, "__copy__") else NavigableString(str(el)))
+            target.append(p)
+            bucket.clear()
+
+        for child in list(soup.children):
+            if isinstance(child, Tag) and child.name in BLOCK:
+                flush(new_soup)
+                new_soup.append(child.__copy__())
+            elif isinstance(child, NavigableString) and not child.strip():
+                continue
+            else:
+                bucket.append(child)
+
+        flush(new_soup)
+        return str(new_soup)
+
+    return str(soup)
