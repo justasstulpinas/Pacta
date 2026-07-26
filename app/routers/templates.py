@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, status
+import io
+import mammoth
+from fastapi import APIRouter, Depends, File, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -152,3 +154,34 @@ def update_template(
 ):
     service = TemplateService(db)
     return service.update_template(template_id, payload, current_user)
+
+
+@router.post("/upload-docx")
+async def upload_docx(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    if not (file.filename or "").lower().endswith(".docx"):
+        from app.core.exceptions import BadRequestError
+        raise BadRequestError("Tik .docx formato failai palaikomi")
+
+    data = await file.read()
+
+    style_map = """
+        p[style-name='Heading 1'] => h1:fresh
+        p[style-name='Heading 2'] => h2:fresh
+        p[style-name='Heading 3'] => h3:fresh
+        p[style-name='Heading 4'] => h4:fresh
+        p[style-name='Title'] => h1:fresh
+        p[style-name='Subtitle'] => h2:fresh
+        r[style-name='Strong'] => strong
+        r[style-name='Emphasis'] => em
+        p[style-name='List Paragraph'] => li:fresh
+    """
+
+    result = mammoth.convert_to_html(
+        io.BytesIO(data),
+        style_map=style_map,
+    )
+
+    return {"html": result.value}
