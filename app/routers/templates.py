@@ -166,76 +166,92 @@ async def upload_docx(
         raise BadRequestError("Tik .docx formato failai palaikomi")
 
     data = await file.read()
-
-    style_map = """
-        p[style-name='Heading 1'] => h1:fresh
-        p[style-name='Heading 2'] => h2:fresh
-        p[style-name='Heading 3'] => h3:fresh
-        p[style-name='Heading 4'] => h4:fresh
-        p[style-name='Title'] => h1:fresh
-        p[style-name='Subtitle'] => h2:fresh
-        r[style-name='Strong'] => strong
-        r[style-name='Emphasis'] => em
-        p[style-name='List Paragraph'] => li:fresh
-    """
-
-    result = mammoth.convert_to_html(
-        io.BytesIO(data),
-        style_map=style_map,
-    )
-
-    return {"html": _clean_docx_html(result.value)}
+    return {"html": _docx_to_tiptap_html(data)}
 
 
-def _clean_docx_html(html: str) -> str:
-    import re
-    from bs4 import BeautifulSoup, NavigableString, Tag
+def _docx_to_tiptap_html(data: bytes) -> str:
+    import html as _html
+    from docx import Document
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.oxml.ns import qn
 
-    # Fix double-quoted CSS values (e.g. font-family: "Times New Roman")
-    # before parsing — the parser itself breaks on unescaped quotes inside attributes.
-    # Replace any CSS value wrapped in double quotes with single quotes.
-    html = re.sub(r'([\w-]+\s*:\s*)"([^"]*)"', r"\1'\2'", html)
+    doc = Document(io.BytesIO(data))
+    parts: list[str] = []
 
-    soup = BeautifulSoup(html, "html.parser")
+    def _run_html(run) -> str:
+        text = _html.escape(run.text)
+        if not text:
+            return ""
 
-    BLOCK = {"p", "div", "h1", "h2", "h3", "h4", "h5", "h6",
-             "ul", "ol", "li", "table", "tr", "td", "th", "blockquote"}
+        styles: list[str] = []
 
-    # Wrap orphan top-level inline elements in <p> tags
-    children = list(soup.children)
-    has_orphans = any(
-        (isinstance(c, NavigableString) and c.strip()) or
-        (isinstance(c, Tag) and c.name not in BLOCK)
-        for c in children
-    )
+        # Font color
+        try:
+            rgb = run.font.color.rgb
+            if rgb:
+                styles.append(f"color: #{rgb};")
+        except Exception:
+            pass
 
-    if not has_orphans:
-        return str(soup)
+        # Font size
+        try:
+            if run.font.size:
+                pt = run.font.size.pt
+                styles.append(f"font-size: {pt}pt;")
+        except Exception:
+            pass
 
-    new_soup = BeautifulSoup("", "html.parser")
-    bucket: list = []
+        # Font family
+        try:
+            name = run.font.name or (
+                run._element.find(qn("w:rFonts")) is not None
+                and run._element.find(qn("w:rFonts")).get(qn("w:ascii"))
+            )
+            if name and isinstance(name, str):
+                styles.append(f"font-family: '{name}', serif;")
+        except Exception:
+            pass
 
-    def flush():
-        if not bucket:
-            return
-        p = Tag(name="p")
-        for el in bucket:
-            p.append(el)
-        new_soup.append(p)
-        bucket.clear()
+        if styles:
+            text = f'<span style="{" ".join(styles)}">{text}</span>'
+        if run.bold:
+            text = f"<strong>{text}</strong>"
+        if run.italic:
+            text = f"<em>{text}</em>"
+        if run.underline:
+            text = f"<u>{text}</u>"
 
-    for child in list(soup.children):
-        child.extract()
-        if isinstance(child, Tag) and child.name in BLOCK:
-            flush()
-            new_soup.append(child)
-        elif isinstance(child, NavigableString):
-            if "\n" in str(child):
-                # Blank line between inline elements = paragraph boundary
-                flush()
-            # skip the whitespace node itself
+        return text
+
+    for para in doc.paragraphs:
+        if not para.text.strip():
+            parts.append("<p></p>")
+            continue
+
+        style_name = (para.style.name or "").lower()
+        content = "".join(_run_html(r) for r in para.runs)
+
+        # Alignment
+        align_style = ""
+        try:
+            if para.alignment == WD_ALIGN_PARAGRAPH.CENTER:
+                align_style = ' style="text-align: center;"'
+            elif para.alignment == WD_ALIGN_PARAGRAPH.RIGHT:
+                align_style = ' style="text-align: right;"'
+            elif para.alignment == WD_ALIGN_PARAGRAPH.JUSTIFY:
+                align_style = ' style="text-align: justify;"'
+        except Exception:
+            pass
+
+        if "heading 1" in style_name or "title" in style_name:
+            parts.append(f"<h1{align_style}>{content}</h1>")
+        elif "heading 2" in style_name or "subtitle" in style_name:
+            parts.append(f"<h2{align_style}>{content}</h2>")
+        elif "heading 3" in style_name:
+            parts.append(f"<h3{align_style}>{content}</h3>")
+        elif "list" in style_name:
+            parts.append(f"<li>{content}</li>")
         else:
-            bucket.append(child)
+            parts.append(f"<p{align_style}>{content}</p>")
 
-    flush()
-    return str(new_soup)
+    return "\n".join(parts)
