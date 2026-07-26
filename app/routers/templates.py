@@ -178,30 +178,71 @@ def _docx_to_tiptap_html(data: bytes) -> str:
     doc = Document(io.BytesIO(data))
     parts: list[str] = []
 
-    def _clean(text: str) -> str:
-        # Strip any embedded HTML tags left over from HTML-in-docx documents
-        return re.sub(r"<[^>]+>", "", text)
+    _OPEN_TAG = re.compile(r'^<([a-zA-Z]+)(\s[^>]*)?>$')
+    _CLOSE_TAG = re.compile(r'^</[a-zA-Z]+>$')
+    _STYLE_ATTR = re.compile(r'style=["\']([^"\']*)["\']')
+    _CSS_COLOR = re.compile(r'color\s*:\s*([^;]+)')
+    _CSS_SIZE = re.compile(r'font-size\s*:\s*([^;]+)')
+    _HTML_TAGS = re.compile(r'<[^>]+>')
 
-    def _run_html(run) -> str:
-        text = _html.escape(_clean(run.text))
-        if not text.strip():
-            return ""
-        if run.bold:
-            text = f"<strong>{text}</strong>"
-        if run.italic:
-            text = f"<em>{text}</em>"
-        if run.underline:
-            text = f"<u>{text}</u>"
-        return text
+    def _para_content(para) -> str:
+        result = []
+        pending: dict = {}  # styles from embedded opening tags
+
+        for run in para.runs:
+            text = run.text
+            stripped = text.strip()
+
+            # Detect embedded HTML opening tags (e.g. the run IS a <span style="...">)
+            if _OPEN_TAG.match(stripped):
+                style_m = _STYLE_ATTR.search(stripped)
+                if style_m:
+                    style_str = style_m.group(1).replace('&quot;', '"')
+                    cm = _CSS_COLOR.search(style_str)
+                    sm = _CSS_SIZE.search(style_str)
+                    if cm:
+                        pending['color'] = cm.group(1).strip()
+                    if sm:
+                        pending['font-size'] = sm.group(1).strip()
+                continue
+
+            # Detect embedded HTML closing tags
+            if _CLOSE_TAG.match(stripped):
+                pending.clear()
+                continue
+
+            # Real text — strip any remaining stray HTML tags
+            clean = _HTML_TAGS.sub('', text)
+            if not clean.strip():
+                continue
+
+            t = _html.escape(clean)
+
+            # Apply Word run formatting
+            if run.bold:
+                t = f"<strong>{t}</strong>"
+            if run.italic:
+                t = f"<em>{t}</em>"
+            if run.underline:
+                t = f"<u>{t}</u>"
+
+            # Apply accumulated inline styles from embedded tags
+            if pending:
+                style_str = '; '.join(f'{k}: {v}' for k, v in pending.items())
+                t = f'<span style="{style_str}">{t}</span>'
+
+            result.append(t)
+
+        return ''.join(result)
 
     for para in doc.paragraphs:
-        raw = _clean(para.text).strip()
+        raw = _HTML_TAGS.sub('', para.text).strip()
         if not raw:
             parts.append("<p></p>")
             continue
 
         style_name = (para.style.name or "").lower()
-        content = "".join(_run_html(r) for r in para.runs) or _html.escape(raw)
+        content = _para_content(para) or _html.escape(raw)
 
         align_style = ""
         try:
