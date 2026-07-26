@@ -67,17 +67,27 @@ def render_contract_html(
 <title>Contract</title>
 
 <style>
-html, body {{
-    height: 100%;
-    min-height: 297mm;
-}}
-
 body {{
     font-family: 'Liberation Serif', 'Times New Roman', Times, serif;
     margin: 0;
     padding: 0;
     line-height: 1.6;
     color: #111;
+}}
+
+@media screen {{
+    html {{
+        background: #c8c8c8;
+    }}
+    body {{
+        padding: 24mm 16mm 20mm 16mm;
+        min-height: 297mm;
+        max-width: 210mm;
+        margin: 0 auto;
+        background: white;
+        box-sizing: border-box;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }}
 }}
 
 .contract-container {{
