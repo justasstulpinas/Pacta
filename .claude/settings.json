@@ -4,7 +4,32 @@
       "Bash(npx tsc *)",
       "Bash(npm run *)",
       "Bash(git checkout *)",
-      "Bash(git merge *)"
+      "Bash(git merge *)",
+      "Bash(mkdir -p /Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/dashboard/submissions/\\\\[id\\\\])",
+      "Bash(xargs ls -la)",
+      "Bash(.venv/bin/alembic upgrade *)",
+      "Bash(.venv/bin/python -c ' *)",
+      "Bash(curl -s http://localhost:8000/health)",
+      "Bash(curl -s -X POST http://localhost:8000/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"test@test.com\",\"password\":\"test\"}')",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s -X POST http://localhost:8000/templates/upload-docx -H \"Authorization: Bearer test\")",
+      "Bash(kill -9 84664 84666)",
+      "Bash(grep -n 'logo.png.*\"<\\\\/Link>\\\\|logo.png.*\"$' /Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/forgot-password/page.tsx /Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/reset-password/page.tsx /Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/verify-email/page.tsx /Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/suspended/page.tsx)",
+      "Bash(.venv/bin/pip install *)",
+      "Bash(python3 -c ' *)",
+      "Bash(grep -vE \"^\\\\.venv$|^__pycache__$\")",
+      "Bash(chmod +x /Users/justasstulpinas/Desktop/Pacta/start.sh)",
+      "Bash(find /Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app -type f -name \"*.tsx\" | sort)",
+      "Read(//Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/**)",
+      "Bash(ls /Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/sign/)",
+      "Read(//Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/sign/**)",
+      "Bash(find /Users/justasstulpinas/Pacta_front_end/pacta-frontend/src -type f \\\\\\( -name \"*.tsx\" -o -name \"*.ts\" \\\\\\) | grep -v node_modules | grep -v \".next\" | sort | grep -v \"page.tsx\")",
+      "Read(//Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/**)"
+    ],
+    "additionalDirectories": [
+      "/Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/dashboard/submissions",
+      "/Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/lib",
+      "/Users/justasstulpinas/Pacta_front_end/pacta-frontend/src/app/sign/[token]"
     ]
   }
 }
