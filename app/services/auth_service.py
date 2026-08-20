@@ -109,8 +109,9 @@ class AuthService:
         self.db.commit()
         try:
             send_password_reset(user.email, token)
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error("Failed to send password reset email to %s: %s", user.email, e)
 
     def reset_password(self, token: str, new_password: str) -> None:
         reset_token = self.db.query(PasswordResetToken).filter(

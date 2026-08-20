@@ -1,14 +1,23 @@
 from sqlalchemy.orm import Session
 
+from app.core.exceptions import BadRequestError
 from app.models.user import User
 from app.repositories.template_repository import TemplateRepository
+from app.repositories.user_profile_repository import UserProfileRepository
 from app.services.filled_contract_service import FilledContractService
 from app.renderers.document_renderer import render_contract_html
 from app.renderers.pdf_renderer import render_pdf_from_html
 from app.renderers.docx_renderer import render_docx_from_html
 
-# klase skirta sugeneruoti dokumenta
+
 class ContractSubmissionService:
+    """
+    Legacy service for FilledContract documents.
+    submitted_data and rendered_content were removed from FilledContract as part of the
+    eIDAS GDPR rewrite — this service can no longer produce documents for old submissions.
+    New submissions use SubmissionService (app/services/submission_service.py).
+    """
+
     def __init__(self, db: Session, repo: TemplateRepository | None = None):
         self.db = db
         self.repo = repo or TemplateRepository(db)
@@ -19,20 +28,9 @@ class ContractSubmissionService:
         submission_id: int,
         current_user: User,
     ) -> str:
-        submission = self.submission_service.get_submission_by_id(
-            submission_id,
-            current_user,
-        )
-
-        signer_name = (
-            submission.submitted_data.get("client_name")
-            or submission.submitted_data.get("client_vardas")
-            or submission.submitter_email
-        )
-        return render_contract_html(
-            content=submission.rendered_content,
-            signature_image=submission.signature_image,
-            signer_name=signer_name,
+        raise BadRequestError(
+            "Document re-rendering is not available for legacy submissions. "
+            "Signed contracts are now delivered as one-time secure downloads."
         )
 
     def get_submission_document_pdf(
@@ -40,13 +38,17 @@ class ContractSubmissionService:
         submission_id: int,
         current_user: User,
     ) -> bytes:
-        html = self.get_submission_document_html(submission_id, current_user)
-        return render_pdf_from_html(html)
+        raise BadRequestError(
+            "PDF download is not available for legacy submissions. "
+            "Signed contracts are now delivered as one-time secure downloads."
+        )
 
     def get_submission_document_docx(
         self,
         submission_id: int,
         current_user: User,
     ) -> bytes:
-        html = self.get_submission_document_html(submission_id, current_user)
-        return render_docx_from_html(html)
+        raise BadRequestError(
+            "DOCX download is not available for legacy submissions. "
+            "Signed contracts are now delivered as one-time secure downloads."
+        )

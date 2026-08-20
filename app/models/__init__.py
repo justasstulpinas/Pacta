@@ -10,3 +10,5 @@ from .revoked_token import RevokedToken
 from .password_reset_token import PasswordResetToken
 from .contact import Contact
 from .user_profile import UserProfile
+from .submission import Submission
+from .signing_audit_trail import SigningAuditTrail

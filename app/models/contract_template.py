@@ -1,5 +1,6 @@
 from sqlalchemy import (
     Column,
+    Float,
     Integer,
     String,
     Text,
@@ -56,6 +57,14 @@ class ContractTemplate(Base):
     default=TemplateStatus.DRAFT,
     index=True,
 )
+
+    logo_x = Column(Float, nullable=False, default=5.0)
+    logo_y = Column(Float, nullable=False, default=5.0)
+    logo_w = Column(Float, nullable=False, default=15.0)
+    client_sig_x = Column(Float, nullable=True)
+    client_sig_y = Column(Float, nullable=True)
+    user_sig_x = Column(Float, nullable=True)
+    user_sig_y = Column(Float, nullable=True)
 
     is_deleted = Column(Boolean, nullable=False, default=False, index=True)
 

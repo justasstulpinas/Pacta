@@ -2,15 +2,31 @@ import re
 from typing import Dict, List
 from app.core.exceptions import ValidationError
 
-# placeholderiu klase kuri atsakinga uz duomenu surinkima is  uzpildyto sablono
 PLACEHOLDER_PATTERN = re.compile(r"\{\{\s*(?P<field>[a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}")
+
+# Placeholders that contain personal identification data.
+# Any template containing one of these triggers the eIDAS secure flow.
+# Extend this set as new sensitive field types are required.
+SENSITIVE_PLACEHOLDERS: frozenset[str] = frozenset({
+    "client_ID",
+    "passport",
+    "personal_code",
+    "identity_number",
+    "driver_license",
+})
 
 class PlaceholderService:
     @staticmethod
-    def extract_placeholders(content: str) -> List[str]:  
+    def extract_placeholders(content: str) -> List[str]:
         matches = PLACEHOLDER_PATTERN.finditer(content)
-        fields= {match.group("field") for match in matches}
+        fields = {match.group("field") for match in matches}
         return sorted(fields)
+
+    @staticmethod
+    def has_sensitive_fields(content: str) -> bool:
+        """Return True if content contains any placeholder from SENSITIVE_PLACEHOLDERS."""
+        fields = set(PlaceholderService.extract_placeholders(content))
+        return bool(fields & SENSITIVE_PLACEHOLDERS)
 
     @staticmethod
     def classify_fields(fields: List[str]) -> tuple[List[str], List[str], List[str]]:
@@ -21,7 +37,7 @@ class PlaceholderService:
             for field in fields
             if not field.startswith("owner_")
             and not field.startswith("sys_")
-            and field != "signature"
+            and field not in PlaceholderService.RESERVED_FIELDS
         )
         return owner_fields, system_fields, public_fields
 
@@ -61,10 +77,14 @@ class PlaceholderService:
                     "extra_fields": sorted(extra)
                 }
             )
+    RESERVED_FIELDS = {"signature", "user_signature"}
+
     @staticmethod
     def render_content(content: str, payload: Dict[str, str]) -> str:
         def replace(match):
             field = match.group("field")
+            if field in PlaceholderService.RESERVED_FIELDS:
+                return match.group(0)
             return str(payload.get(field, ""))
 
         return PLACEHOLDER_PATTERN.sub(replace, content)

@@ -19,3 +19,5 @@ alembic==1.18.4
 resend==2.30.1
 psycopg2-binary==2.9.10
 mammoth==1.12.0
+argon2-cffi==23.1.0
+cryptography==44.0.3

@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -23,6 +23,10 @@ class UserProfile(Base):
     phone_number = Column(String(64), nullable=True)
     company_code = Column(String(64), nullable=True)
     avatar_url = Column(String(500), nullable=True)
+    signature_image = Column(Text, nullable=True)
+    logo_image = Column(Text, nullable=True)
+    logo_x = Column(Float, nullable=False, default=5.0)
+    logo_y = Column(Float, nullable=False, default=5.0)
     created_at = Column(DateTime, nullable=False, default=datetime.now(UTC))
     updated_at = Column(
         DateTime,

@@ -3,8 +3,8 @@ import resend
 
 resend.api_key = os.getenv("RESEND_API_KEY")
 
-FROM = os.getenv("EMAIL_FROM", "noreply@melno.lt")
-APP_URL = os.getenv("APP_URL", "https://melno.lt")
+FROM = os.getenv("EMAIL_FROM", "noreply@melno.app")
+APP_URL = os.getenv("APP_URL", "https://melno.app")
 
 
 def _base(content: str) -> str:
@@ -33,7 +33,7 @@ def _base(content: str) -> str:
         <!-- Footer -->
         <tr><td style="padding-top:24px;text-align:center;">
           <p style="margin:0;font-size:11px;color:#52525b;">
-            © 2026 Melno · <a href="{APP_URL}" style="color:#52525b;text-decoration:underline;">melno.lt</a>
+            © 2026 Melno · <a href="{APP_URL}" style="color:#52525b;text-decoration:underline;">melno.app</a>
           </p>
         </td></tr>
 
@@ -222,38 +222,101 @@ def send_password_reset(email: str, token: str):
         "html": _base(content),
     })
     
-def send_contract_signed_pdf(
-    submitter_email: str,
+def send_signing_invitation(
+    recipient_email: str,
     template_name: str,
-    pdf_bytes: bytes,
+    signing_url: str,
+    access_code: str,
+    expires_at,
 ):
-    import base64
+    """
+    Email sent to the contract recipient with the signing link and 6-digit access code.
+    Never contains contract content, personal data, or attachments.
+    """
     content = f"""
       <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#ffffff;">
-        Pasirašyta sutartis
+        Jums išsiųsta sutartis
       </h1>
       <p style="margin:0 0 24px;font-size:14px;color:#a1a1aa;line-height:1.6;">
-        Jūsų sutartis <strong style="color:#ffffff;">{template_name}</strong> patvirtinta.
-        Pasirašyto dokumento kopija pridėta prie šio laiško.
+        Gavote pasirašyti sutartį: <strong style="color:#ffffff;">{template_name}</strong>.
+        Atidarykite žemiau pateiktą nuorodą ir įveskite patvirtinimo kodą.
       </p>
-      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
-        <tr><td style="background:#052e16;border:1px solid #14532d;border-radius:8px;padding:16px;">
-          <p style="margin:0;font-size:14px;color:#4ade80;line-height:1.6;">
-            ✓ &nbsp;Sutartis įsigalioja nuo patvirtinimo momento.
-          </p>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
+        <tr><td style="background:#09090b;border:1px solid #27272a;border-radius:8px;padding:16px;">
+          <p style="margin:0 0 4px;font-size:11px;color:#71717a;text-transform:uppercase;letter-spacing:0.08em;">Patvirtinimo kodas</p>
+          <p style="margin:0;font-size:28px;color:#ffffff;font-weight:700;letter-spacing:0.2em;">{access_code}</p>
         </td></tr>
       </table>
+
+      <a href="{signing_url}"
+         style="display:inline-block;background:#ffffff;color:#09090b;font-size:14px;font-weight:600;
+                text-decoration:none;padding:12px 24px;border-radius:8px;margin-bottom:24px;">
+        Atidaryti sutartį →
+      </a>
+
       <p style="margin:0;font-size:12px;color:#52525b;line-height:1.6;">
-        Išsaugokite šį laišką kaip patvirtinimą. Jei turite klausimų — susisiekite su sutarties išdavėju.
+        Kodas galioja iki nuorodos galiojimo pabaigos. Neatskleisite šio kodo niekam.
+        Jei nesitikėjote gauti šio laiško — tiesiog jį ignoruokite.
       </p>
     """
     resend.Emails.send({
         "from": FROM,
-        "to": [submitter_email],
-        "subject": f"Pasirašyta sutartis — {template_name}",
+        "to": [recipient_email],
+        "subject": f"Sutartis pasirašymui — {template_name}",
         "html": _base(content),
-        "attachments": [{
-            "filename": f"{template_name}.pdf",
-            "content": list(pdf_bytes),
-        }],
+    })
+
+
+def send_owner_signed_notification(
+    owner_email: str,
+    template_name: str,
+    download_url: str,
+    download_code: str,
+):
+    """
+    Email sent to the template owner after the recipient signs.
+    Contains a one-time download link (with embedded AES key) and verification code.
+    Never contains the signed PDF as an attachment.
+    """
+    content = f"""
+      <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#ffffff;">
+        Sutartis pasirašyta
+      </h1>
+      <p style="margin:0 0 24px;font-size:14px;color:#a1a1aa;line-height:1.6;">
+        Klientas pasirašė sutartį <strong style="color:#ffffff;">{template_name}</strong>.
+        Atsisiųskite pasirašytą kopiją naudodami žemiau pateiktą kodą ir nuorodą.
+      </p>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
+        <tr><td style="background:#09090b;border:1px solid #27272a;border-radius:8px;padding:16px;">
+          <p style="margin:0 0 4px;font-size:11px;color:#71717a;text-transform:uppercase;letter-spacing:0.08em;">Atsisiuntimo kodas</p>
+          <p style="margin:0;font-size:28px;color:#ffffff;font-weight:700;letter-spacing:0.2em;">{download_code}</p>
+        </td></tr>
+      </table>
+
+      <a href="{download_url}"
+         style="display:inline-block;background:#ffffff;color:#09090b;font-size:14px;font-weight:600;
+                text-decoration:none;padding:12px 24px;border-radius:8px;margin-bottom:24px;">
+        Atsisiųsti sutartį →
+      </a>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+        <tr><td style="background:#052e16;border:1px solid #14532d;border-radius:8px;padding:16px;">
+          <p style="margin:0;font-size:13px;color:#4ade80;line-height:1.6;">
+            Atsisiuntimo nuoroda vienkartinė — po atsisiuntimo ji bus panaikinta.
+            Išsaugokite failą saugioje vietoje.
+          </p>
+        </td></tr>
+      </table>
+
+      <p style="margin:0;font-size:12px;color:#52525b;line-height:1.6;">
+        Šis laiškas išsiųstas automatiškai, nes esate šablono savininkas.
+      </p>
+    """
+    resend.Emails.send({
+        "from": FROM,
+        "to": [owner_email],
+        "subject": f"Sutartis pasirašyta — {template_name}",
+        "html": _base(content),
     })

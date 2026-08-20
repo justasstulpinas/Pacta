@@ -17,6 +17,8 @@ ALLOWED_ATTRIBUTES = {"*": ["style"]}
 CSS_SANITIZER = CSSSanitizer(allowed_css_properties=[
     "text-align", "font-weight", "font-style", "text-decoration",
     "color", "font-size", "font-family", "line-height",
+    "margin", "margin-top", "margin-bottom", "margin-left", "margin-right",
+    "padding", "padding-top", "padding-bottom", "padding-left", "padding-right",
 ])
 
 def _clean(content: str) -> str:
@@ -111,6 +113,18 @@ class TemplateService:
         if payload.content is not None and payload.content != template.content:
             content_changed = True
             template.content = _clean(payload.content)
+        if payload.logo_x is not None:
+            template.logo_x = max(0.0, min(88.0, payload.logo_x))
+        if payload.logo_y is not None:
+            template.logo_y = max(0.0, min(93.0, payload.logo_y))
+        if payload.logo_w is not None:
+            template.logo_w = max(5.0, min(60.0, payload.logo_w))
+        if "client_sig_x" in payload.model_fields_set:
+            template.client_sig_x = payload.client_sig_x
+            template.client_sig_y = payload.client_sig_y
+        if "user_sig_x" in payload.model_fields_set:
+            template.user_sig_x = payload.user_sig_x
+            template.user_sig_y = payload.user_sig_y
 
         if content_changed:
             latest_version = self.repo.get_latest_version(template.id)

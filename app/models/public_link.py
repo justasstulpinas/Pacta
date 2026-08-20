@@ -1,7 +1,7 @@
 import uuid
 
 from datetime import datetime, UTC
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Float, Integer, String, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -15,5 +15,12 @@ class PublicLink(Base):
     expires_at = Column(DateTime, nullable= False)
     is_revoked = Column(Boolean, default= False, nullable=False)
     resolved_content = Column(Text, nullable=True)
+    logo_x = Column(Float, nullable=False, default=5.0)
+    logo_y = Column(Float, nullable=False, default=5.0)
+    logo_w = Column(Float, nullable=False, default=15.0)
+    client_sig_x = Column(Float, nullable=True)
+    client_sig_y = Column(Float, nullable=True)
+    user_sig_x = Column(Float, nullable=True)
+    user_sig_y = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.now(UTC), nullable= False)
     template = relationship("ContractTemplate")

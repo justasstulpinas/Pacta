@@ -21,12 +21,11 @@ class ForbiddenError(AppError):
     pass
 
 class BadRequestError(AppError):
-    pass
+    def __init__(self, detail: str = "Bad request"):
+        self.detail = detail
+        super().__init__(detail)
 
 class UnauthorizedError(AppError):
-    pass
-
-class BadRequestError(AppError):
     pass
 
 class RateLimitExceeded(AppError):

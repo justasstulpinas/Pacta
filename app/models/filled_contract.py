@@ -4,7 +4,6 @@ from sqlalchemy import (
     Column,
     Integer,
     ForeignKey,
-    JSON,
     DateTime,
     Text,
     String,
@@ -15,7 +14,10 @@ from sqlalchemy.orm import relationship
 
 from app.database import Base
 from app.models.enums import SubmissionStatus
-# uzpildytu sutarciu lentele
+
+# Legacy submission table — submitted_data and rendered_content have been removed
+# as part of the eIDAS GDPR compliance rewrite. No new rows should be written here;
+# use app.models.submission.Submission for all new signing flows.
 class FilledContract(Base):
     __tablename__ = "filled_contracts"
     _status_values = ",".join(f"'{status.value}'" for status in SubmissionStatus)
@@ -23,15 +25,11 @@ class FilledContract(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     template_id = Column(Integer, ForeignKey("contract_templates.id"), nullable=False)
-    
-    link_id = Column(Integer,ForeignKey("public_links.id"), nullable=False)
 
-    submitted_data = Column(JSON, nullable=False)
+    link_id = Column(Integer, ForeignKey("public_links.id"), nullable=False)
 
     submitted_at = Column(DateTime, default=datetime.now(UTC), nullable=False)
 
-    rendered_content = Column(Text, nullable=False)
-    
     signature_image = Column(Text, nullable=True)
 
     template_version = Column(Integer, nullable=True)

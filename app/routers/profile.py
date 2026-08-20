@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models.user import User
-from app.schemas.profile import ProfileAvatarOut, ProfileOut, ProfileUpdate
+from app.schemas.profile import ProfileAvatarOut, ProfileLogoIn, ProfileLogoPositionIn, ProfileOut, ProfileSignatureIn, ProfileUpdate
 from app.services.profile_service import ProfileService
 
 
@@ -62,3 +62,51 @@ def delete_avatar(
 ):
     service = ProfileService(db)
     return service.delete_avatar(current_user)
+
+
+@router.post("/signature", response_model=ProfileOut)
+def save_signature(
+    payload: ProfileSignatureIn,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    service = ProfileService(db)
+    return service.save_signature(payload, current_user)
+
+
+@router.delete("/signature", response_model=ProfileOut)
+def delete_signature(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    service = ProfileService(db)
+    return service.delete_signature(current_user)
+
+
+@router.post("/logo", response_model=ProfileOut)
+def save_logo(
+    payload: ProfileLogoIn,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    service = ProfileService(db)
+    return service.save_logo(payload, current_user)
+
+
+@router.delete("/logo", response_model=ProfileOut)
+def delete_logo(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    service = ProfileService(db)
+    return service.delete_logo(current_user)
+
+
+@router.patch("/logo-position", response_model=ProfileOut)
+def update_logo_position(
+    payload: ProfileLogoPositionIn,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    service = ProfileService(db)
+    return service.update_logo_position(payload, current_user)

@@ -58,7 +58,7 @@ def create_access_token(
         algorithm=ALGORITHM
     )
     return encoded_jwt
-#  sesijos tokeno dekodavimas 
+#  sesijos tokeno dekodavimas
 def decode_access_token(token: str) -> Dict[str, Any]:
     try:
         payload = jwt.decode(
@@ -69,3 +69,23 @@ def decode_access_token(token: str) -> Dict[str, Any]:
         return payload
     except JWTError:
         raise InvalidCredentialsError
+
+
+def create_signed_token(data: Dict[str, Any], expires_minutes: int) -> str:
+    """Create a short-lived signed JWT carrying arbitrary claims."""
+    now = datetime.now(UTC)
+    payload = {
+        **data,
+        "exp": now + timedelta(minutes=expires_minutes),
+        "iat": now,
+        "jti": str(uuid4()),
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decode_token(token: str) -> Dict[str, Any] | None:
+    """Decode any signed token. Returns None on failure (does not raise)."""
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        return None

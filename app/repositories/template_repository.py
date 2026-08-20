@@ -170,12 +170,26 @@ class TemplateRepository:
         token: str,
         expires_at: datetime,
         resolved_content: str | None = None,
+        logo_x: float = 5.0,
+        logo_y: float = 5.0,
+        logo_w: float = 15.0,
+        client_sig_x: float | None = None,
+        client_sig_y: float | None = None,
+        user_sig_x: float | None = None,
+        user_sig_y: float | None = None,
     ) -> PublicLink:
         link = PublicLink(
             template_id=template_id,
             token=token,
             expires_at=expires_at,
             resolved_content=resolved_content,
+            logo_x=logo_x,
+            logo_y=logo_y,
+            logo_w=logo_w,
+            client_sig_x=client_sig_x,
+            client_sig_y=client_sig_y,
+            user_sig_x=user_sig_x,
+            user_sig_y=user_sig_y,
         )
         self.db.add(link)
         self.db.commit()
@@ -204,8 +218,6 @@ class TemplateRepository:
         template_version: int,
         template_version_id: int,
         link_id: int,
-        submitted_data: dict[str, str],
-        rendered_content: str,
         ip_address: str,
         user_agent: str | None,
         submission_hash: str,
@@ -218,14 +230,12 @@ class TemplateRepository:
             template_version=template_version,
             template_version_id=template_version_id,
             link_id=link_id,
-            submitted_data=submitted_data,
-            rendered_content=rendered_content,
             ip_address=ip_address,
             user_agent=user_agent,
             submission_hash=submission_hash,
-            signature_image= signature_image,
+            signature_image=signature_image,
             submitter_email=submitter_email,
-            status=status.value, 
+            status=status.value,
         )
         self.db.add(submission)
         self.db.commit()

@@ -8,7 +8,7 @@ from app.models.enums import SubmissionStatus
 from app.models.filled_contract import FilledContract
 from app.repositories.template_repository import TemplateRepository
 from app.services.policy import PolicyService
-from app.services.email_services import send_contract_signed_pdf
+from app.services.email_services import send_submission_confirmation
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,6 @@ class FilledContractService:
                 "id": s.id,
                 "template_id": s.template_id,
                 "template_name": s.template.name if s.template else f"#{s.template_id}",
-                "submitted_data": s.submitted_data,
                 "status": s.status,
                 "submitted_at": s.submitted_at,
                 "confirmed_at": s.confirmed_at,
@@ -69,13 +68,9 @@ class FilledContractService:
 
         try:
             if submitter_email:
-                from app.services.contract_submission_service import ContractSubmissionService
-                service = ContractSubmissionService(self.db, self.repo)
-                pdf = service.get_submission_document_pdf(submission.id, current_user)
-                send_contract_signed_pdf(
+                send_submission_confirmation(
                     submitter_email=submitter_email,
                     template_name=template_name,
-                    pdf_bytes=pdf,
                 )
         except Exception:
             logger.exception("Failed to send signed PDF email for submission %s", submission.id)

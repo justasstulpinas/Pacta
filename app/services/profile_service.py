@@ -7,7 +7,7 @@ from app.models.user import User
 from app.models.user_profile import UserProfile
 from app.repositories.user_profile_repository import UserProfileRepository
 from app.repositories.user_repository import UserRepository
-from app.schemas.profile import ProfileAvatarOut, ProfileOut, ProfilePrefillOut, ProfileUpdate
+from app.schemas.profile import ProfileAvatarOut, ProfileLogoIn, ProfileLogoPositionIn, ProfileOut, ProfilePrefillOut, ProfileSignatureIn, ProfileUpdate
 
 # profilio tvarkymo klase
 class ProfileService:
@@ -55,6 +55,10 @@ class ProfileService:
             address=profile.address,
             phone_number=profile.phone_number,
             avatar_url=profile.avatar_url,
+            signature_image=profile.signature_image,
+            logo_image=profile.logo_image,
+            logo_x=profile.logo_x if profile.logo_x is not None else 5.0,
+            logo_y=profile.logo_y if profile.logo_y is not None else 5.0,
             created_at=profile.created_at,
             updated_at=profile.updated_at,
             prefill=ProfilePrefillOut(
@@ -162,6 +166,57 @@ class ProfileService:
             self._remove_avatar_file(old_avatar_url)
 
         return ProfileAvatarOut(avatar_url=None)
+
+    def save_signature(self, payload: ProfileSignatureIn, current_user: User) -> ProfileOut:
+        user = self.user_repo.get_by_id(current_user.id)
+        if not user:
+            raise NotFoundError("User not found")
+        profile = self._ensure_profile(user.id)
+        profile.signature_image = payload.signature_image
+        profile.updated_at = datetime.now(UTC)
+        saved = self.profile_repo.save(profile)
+        return self._to_profile_out(user, saved)
+
+    def delete_signature(self, current_user: User) -> ProfileOut:
+        user = self.user_repo.get_by_id(current_user.id)
+        if not user:
+            raise NotFoundError("User not found")
+        profile = self._ensure_profile(user.id)
+        profile.signature_image = None
+        profile.updated_at = datetime.now(UTC)
+        saved = self.profile_repo.save(profile)
+        return self._to_profile_out(user, saved)
+
+    def save_logo(self, payload: ProfileLogoIn, current_user: User) -> ProfileOut:
+        user = self.user_repo.get_by_id(current_user.id)
+        if not user:
+            raise NotFoundError("User not found")
+        profile = self._ensure_profile(user.id)
+        profile.logo_image = payload.logo_image
+        profile.updated_at = datetime.now(UTC)
+        saved = self.profile_repo.save(profile)
+        return self._to_profile_out(user, saved)
+
+    def delete_logo(self, current_user: User) -> ProfileOut:
+        user = self.user_repo.get_by_id(current_user.id)
+        if not user:
+            raise NotFoundError("User not found")
+        profile = self._ensure_profile(user.id)
+        profile.logo_image = None
+        profile.updated_at = datetime.now(UTC)
+        saved = self.profile_repo.save(profile)
+        return self._to_profile_out(user, saved)
+
+    def update_logo_position(self, payload: ProfileLogoPositionIn, current_user: User) -> ProfileOut:
+        user = self.user_repo.get_by_id(current_user.id)
+        if not user:
+            raise NotFoundError("User not found")
+        profile = self._ensure_profile(user.id)
+        profile.logo_x = max(0.0, min(95.0, payload.logo_x))
+        profile.logo_y = max(0.0, min(95.0, payload.logo_y))
+        profile.updated_at = datetime.now(UTC)
+        saved = self.profile_repo.save(profile)
+        return self._to_profile_out(user, saved)
 
     def _remove_avatar_file(self, avatar_url: str) -> None:
         prefix = f"{self.AVATAR_PUBLIC_PREFIX}/"

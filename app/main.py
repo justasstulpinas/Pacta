@@ -1,9 +1,11 @@
+import asyncio
 import logging
 import os
 from dotenv import load_dotenv
 load_dotenv()
 import app.models
 
+from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,6 +25,8 @@ from app.routers import links, contracts, contacts
 from app.routers.profile import router as profile_router
 from app.routers.templates import router as templates_router
 from app.routers import admin
+from app.routers.signing import router as signing_router
+from app.middleware.secure_logging import SecureLoggingMiddleware
 
 from app.core.exceptions import ValidationError
 from app.core.exceptions import (
@@ -40,7 +44,29 @@ from app.limiter import limiter
 
 
 
-app = FastAPI(title="Pacta")
+async def _run_cleanup_loop():
+    """Run submission cleanup every 15 minutes in the background."""
+    from app.tasks.cleanup import cleanup_expired_submissions, cleanup_signed_expired_blobs
+    while True:
+        try:
+            with SessionLocal() as db:
+                cleanup_expired_submissions(db)
+                cleanup_signed_expired_blobs(db)
+        except Exception:
+            logging.getLogger(__name__).exception("Cleanup task failed")
+        await asyncio.sleep(15 * 60)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    with SessionLocal() as db:
+        seed_rbac(db)
+    task = asyncio.create_task(_run_cleanup_loop())
+    yield
+    task.cancel()
+
+
+app = FastAPI(title="Pacta", lifespan=lifespan)
 # next.js frontendo reikalai
 _origins = [o for o in [
     os.getenv("FRONT_END_URL"),
@@ -61,8 +87,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-with SessionLocal() as db:
-    seed_rbac(db)
+app.add_middleware(SecureLoggingMiddleware)
 
 app.include_router(auth_router)
 app.include_router(templates_router)
@@ -71,6 +96,7 @@ app.include_router(contacts.router)
 app.include_router(profile_router)
 app.include_router(contracts.router)
 app.include_router(admin.router)
+app.include_router(signing_router)
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.state.limiter = limiter
 
@@ -125,7 +151,7 @@ def validation_error_handler(request: Request, exc: ValidationError):
 def bad_request_handler(request: Request, exc: BadRequestError):
     return JSONResponse(
         status_code=400,
-        content={"detail": "Bad request"},  
+        content={"detail": getattr(exc, "detail", "Bad request")},
     )
 
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

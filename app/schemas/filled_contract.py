@@ -3,22 +3,18 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 
-
-# pagalbinis uzpildytu sutarciu ivesciu standartizavimo failas
 class FilledContractResponse(BaseModel):
     id: int
     template_id: int
-    template_version: Optional[int]
+    template_version: Optional[int] = None
     link_id: int
-    submitted_data: Dict[str, Any]
-    rendered_content: str
     status: str
     submitted_at: datetime
-    confirmed_at: Optional[datetime]
-    ip_address: str
-    user_agent: Optional[str]
+    confirmed_at: Optional[datetime] = None
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
     signature_image: Optional[str] = None
-    submission_hash: str
+    submission_hash: Optional[str] = None
     submitter_email: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
@@ -27,10 +23,9 @@ class FilledContractListItem(BaseModel):
     id: int
     template_id: int
     template_name: str
-    submitted_data: Dict[str, Any]
     status: str
     submitted_at: datetime
-    confirmed_at: Optional[datetime]
+    confirmed_at: Optional[datetime] = None
     submitter_email: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

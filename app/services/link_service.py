@@ -24,10 +24,9 @@ class LinkService:
         self.db = db
         self.repo = repo or TemplateRepository(db)
 # sugeneruojamas hash
-    def _generate_hash(self, rendered_content: str, payload: Dict[str, str]) -> str:
+    def _generate_hash(self, payload: Dict[str, str]) -> str:
         serialized = json.dumps(payload, sort_keys=True)
-        base_string = rendered_content + serialized
-        return hashlib.sha256(base_string.encode()).hexdigest()
+        return hashlib.sha256(serialized.encode()).hexdigest()
 
     def _get_valid_link(self, token: str) -> PublicLink:
         link = self.repo.get_public_link_by_token(token)
@@ -89,6 +88,13 @@ class LinkService:
             token=token,
             expires_at=datetime.now(UTC) + timedelta(hours=expires_in_hours),
             resolved_content=resolved_content,
+            logo_x=template.logo_x if template.logo_x is not None else 5.0,
+            logo_y=template.logo_y if template.logo_y is not None else 5.0,
+            logo_w=template.logo_w if template.logo_w is not None else 15.0,
+            client_sig_x=template.client_sig_x,
+            client_sig_y=template.client_sig_y,
+            user_sig_x=template.user_sig_x,
+            user_sig_y=template.user_sig_y,
         )
     def list_links_for_template(self, template_id: int, user: User) -> list[PublicLink]:
         template = self.repo.get_by_id(template_id)
@@ -124,11 +130,20 @@ class LinkService:
         link_content = link.resolved_content or latest_version.content
         fields = PlaceholderService.extract_placeholders(link_content)
         _, _, public_fields = PlaceholderService.classify_fields(fields)
+
+        from app.repositories.user_profile_repository import UserProfileRepository
+        owner_profile = UserProfileRepository(self.db).get_by_user_id(template.owner_id)
+        logo_image = owner_profile.logo_image if owner_profile else None
+
         return {
             "name": template.name,
             "description": template.description,
             "content": link_content,
             "fields": public_fields,
+            "logo_image": logo_image,
+            "logo_x": link.logo_x if link.logo_x is not None else 5.0,
+            "logo_y": link.logo_y if link.logo_y is not None else 5.0,
+            "logo_w": link.logo_w if link.logo_w is not None else 15.0,
         }
 
     def decline_public_contract(self, token: str) -> dict:
@@ -168,16 +183,13 @@ class LinkService:
         _, _, public_fields = PlaceholderService.classify_fields(expected_fields)
 
         PlaceholderService.validate_payload(public_fields, payload)
-        rendered = PlaceholderService.render_content(link_content, payload)
-        submission_hash = self._generate_hash(rendered, payload)
+        submission_hash = self._generate_hash(payload)
 
         filled = self.repo.create_submission(
             template_id=template.id,
             template_version=latest_version.version_number,
             template_version_id=latest_version.id,
             link_id=link.id,
-            submitted_data=payload,
-            rendered_content=rendered,
             ip_address=ip,
             user_agent=user_agent,
             signature_image=signature_image,

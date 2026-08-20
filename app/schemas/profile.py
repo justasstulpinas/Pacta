@@ -20,11 +20,28 @@ class ProfileOut(BaseModel):
     address: str | None
     phone_number: str | None
     avatar_url: str | None
+    signature_image: str | None
+    logo_image: str | None
+    logo_x: float
+    logo_y: float
     created_at: datetime
     updated_at: datetime
     prefill: ProfilePrefillOut
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ProfileSignatureIn(BaseModel):
+    signature_image: str
+
+
+class ProfileLogoIn(BaseModel):
+    logo_image: str
+
+
+class ProfileLogoPositionIn(BaseModel):
+    logo_x: float
+    logo_y: float
 
 
 class ProfileUpdate(BaseModel):
