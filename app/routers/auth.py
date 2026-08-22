@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -8,6 +8,8 @@ from app.dependencies.auth import get_current_user
 from app.models.user import User
 from app.services.auth_service import AuthService
 from app.schemas.auth import LoginRequest, UserCreate, VerifyEmailRequest, ForgotPasswordRequest, ResetPasswordRequest
+from app.limiter import limiter
+
 
 
 router = APIRouter(
@@ -30,10 +32,13 @@ def register(
 
 
 @router.post("/login")
+@limiter.limit("20/minute")
 def login(
+    request: Request,
     data: LoginRequest,
     db: Session = Depends(get_db),
 ):
+
     service = AuthService(db)
     access_token = service.login_user(
         email=data.email,
@@ -43,6 +48,10 @@ def login(
         "access_token": access_token,
         "token_type": "bearer",
     }
+    
+
+    
+
 
 
 @router.post("/token")

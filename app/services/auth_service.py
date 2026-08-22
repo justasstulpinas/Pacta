@@ -57,11 +57,18 @@ class AuthService:
         if not user:
             raise InvalidCredentialsError("wrong email or password")
 
+        if user.locked_until and user.locked_until > datetime.now(UTC):
+            raise InvalidCredentialsError("Account locked. Try again later.")
+
         if not verify_password(password, user.hashed_password):
+            user.failed_login_attempts += 1
+            if user.failed_login_attempts >= 10:
+                user.locked_until = datetime.now(UTC) + timedelta(minutes=15)
+            self.db.commit()
             raise InvalidCredentialsError("wrong email or password")
 
         if not user.is_verified and user.created_at:
-            age = datetime.utcnow() - user.created_at.replace(tzinfo=None)
+            age = datetime.now(UTC) - user.created_at.replace(tzinfo=UTC)
             if age.days >= 7:
                 user.is_suspended = True
                 self.db.commit()
@@ -73,7 +80,9 @@ class AuthService:
                 except Exception:
                     pass
 
-        user.last_login = datetime.utcnow()
+        user.failed_login_attempts = 0
+        user.locked_until = None
+        user.last_login = datetime.now(UTC)
         self.db.commit()
 
         return create_access_token(subject=str(user.id))

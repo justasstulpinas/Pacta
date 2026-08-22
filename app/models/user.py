@@ -18,6 +18,9 @@ class User(Base):
     last_login = Column(DateTime, nullable=True)
     is_suspended = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=True)
+    failed_login_attempts: int = Column(Integer, default=0, nullable=False)
+    locked_until: datetime | None = Column(DateTime(timezone=True), nullable=True)
+
 
     roles = relationship(
         "Role",
