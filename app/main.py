@@ -10,6 +10,7 @@ from pathlib import Path
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+from app.middleware.security_headers import SecurityHeadersMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -88,6 +89,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(SecureLoggingMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 
 app.include_router(auth_router)
 app.include_router(templates_router)
