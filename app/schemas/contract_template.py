@@ -30,7 +30,8 @@ class ContractTemplateListItem(BaseModel):
     name: str
     description: Optional[str]
     status: str
-    
+    content: Optional[str] = None
+
     model_config = ConfigDict(from_attributes=True)
 
 class ContractTemplateUpdate(BaseModel):
