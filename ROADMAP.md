@@ -39,9 +39,9 @@
 ## Phase 4 — Complete the Core Submission Flow (3–5 days)
 *The contract lifecycle is half-built.*
 
-- [ ] Add `POST /contracts/submissions/{id}/cancel` endpoint (set status → `cancelled`)
-- [ ] Add `POST /contracts/submissions/{id}/complete` endpoint (set status → `completed`)
-- [ ] Add `DELETE /contacts/{contact_id}` endpoint
+- [x] Add `POST /contracts/submissions/{id}/cancel` endpoint (set status → `cancelled`)
+- [x] Add `POST /contracts/submissions/{id}/complete` endpoint (set status → `completed`)
+- [x] Add `DELETE /contacts/{contact_id}` endpoint
 - [x] Replace `ContractTemplateOut` on the list endpoint with `ContractTemplateListItem` (don't return full content on list)
 - [x] Add pagination (`limit`/`offset`) to templates list and contacts list
 - [x] Add template search/filter by `status` and `name` query params
@@ -56,7 +56,7 @@ Choose one approach:
 
 **Option A — Simple (draw or type signature, stored as image):**
 - [x] Add `signature_image` field to `FilledContract` (base64 PNG)
-- [ ] Add `{{signature}}` as a reserved placeholder type
+- [x] Add `{{signature}}` as a reserved placeholder type
 - [x] Frontend captures signature (draw pad or typed name rendered as image)
 - [x] Store signature image with the submission
 - [x] Embed signature image in PDF/DOCX export
@@ -98,6 +98,7 @@ Choose one approach:
 - [x] One-click PDF and DOCX download
 - [x] Profile page with avatar upload
 - [x] Contact list management
+- [x] Owner signature field (`{{user_signature}}`) — stored on profile, embedded inline in documents
 - [ ] Mobile-friendly signing and contract review page (clients sign on phone)
 
 ---
@@ -105,7 +106,7 @@ Choose one approach:
 ## Phase 8 — Billing & Multi-Tenancy (1–2 weeks)
 *Required to sell the product.*
 
-- [ ] **Logo on documents (Pro feature):** Allow users to upload a company logo that gets embedded at the top of every generated PDF/DOCX. Store logo URL on the user profile, inject it in `document_renderer.py` above the contract body. Gate behind a paid plan — free users see a Melno watermark instead.
+- [x] **Logo on documents:** Upload company logo to profile, freely drag position on A4 preview, embedded at chosen position on every PDF page via `position:fixed`.
 - [ ] Integrate Stripe (subscriptions)
 - [ ] Define plans: e.g. Free (3 templates, 10 submissions/month), Pro (unlimited), Business (team + API access)
 - [ ] Add `Plan` / `Subscription` model to track per-user limits
