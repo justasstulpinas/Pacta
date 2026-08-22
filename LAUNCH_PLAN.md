@@ -139,7 +139,7 @@ Your own design — not AI-generated generic layout.
 
 - `app/services/contract_submission_service.py` is legacy and returns 400 on all calls — the old dashboard download buttons will fail for any legacy `FilledContract`. Fix in Week 4 or Week 7.
 - `signature_image` is stored on the `Submission` model for audit purposes — confirm this is acceptable under your privacy policy before launch.
-- The `pacta.db` SQLite file must be replaced with PostgreSQL before launch (Week 11). SQLite will lose data if Railway restarts.
+- The `melno.db` SQLite file must be replaced with PostgreSQL before launch (Week 11). SQLite will lose data if Railway restarts.
 - Old `PublicLink` / `FilledContract` records in the DB have no sensitive data (columns dropped) but the rows still exist — decide whether to keep or purge before launch.
 - Owner download frontend page (`/download/owner/[uuid]`) works but has no `/dashboard` link in nav — add it in Week 4.
 
@@ -180,9 +180,9 @@ Both backend (FastAPI) and frontend (Next.js) run on the Mini. Cloudflare Tunnel
 
 | # | Session | Task | Est |
 |---|---------|------|-----|
-| 61 | Mon | **Mac Mini base setup.** Install via Homebrew: PostgreSQL 16, Python 3.13, Node.js 20. Create dedicated `pacta` user. Clone both repos. Backend: venv + `pip install -r requirements.txt` + `.env`. Frontend: `npm install` + `.env.local` (`NEXT_PUBLIC_API_URL=https://api.melno.app`). Both apps start manually — confirm no errors. | 2h |
+| 61 | Mon | **Mac Mini base setup.** Install via Homebrew: PostgreSQL 16, Python 3.13, Node.js 20. Create dedicated `melno` user. Clone both repos. Backend: venv + `pip install -r requirements.txt` + `.env`. Frontend: `npm install` + `.env.local` (`NEXT_PUBLIC_API_URL=https://api.melno.app`). Both apps start manually — confirm no errors. | 2h |
 | 62 | Mon | **Cloudflare Tunnel — both domains.** Install `cloudflared`. Create one tunnel with two ingress rules in `config.yml`: `melno.app → localhost:3000` and `api.melno.app → localhost:8000`. Add both CNAMEs in Cloudflare DNS. Test: `https://melno.app` loads Next.js, `https://api.melno.app/health` returns OK. SSL automatic. | 1h |
-| 63 | Tue | **Process management (3 LaunchAgents).** Three `~/Library/LaunchAgents` plists: uvicorn (port 8000, 2 workers), `next start` (port 3000), cloudflared. All auto-start on boot, restart on crash. Logs to `~/Library/Logs/pacta/`. Test: reboot Mac Mini, all three come up automatically. | 1h |
+| 63 | Tue | **Process management (3 LaunchAgents).** Three `~/Library/LaunchAgents` plists: uvicorn (port 8000, 2 workers), `next start` (port 3000), cloudflared. All auto-start on boot, restart on crash. Logs to `~/Library/Logs/melno/`. Test: reboot Mac Mini, all three come up automatically. | 1h |
 | 64 | Tue | **Backups + deploy script.** Hourly `pg_dump` to external drive via cron. Single `deploy.sh` script that handles both repos: `git pull` (both) → `pip install` → `npm install` → `npm run build` → `alembic upgrade head` → `launchctl kickstart` (uvicorn + next). One command for a full deploy. | 2h |
 
 ---

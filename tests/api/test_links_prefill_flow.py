@@ -97,7 +97,7 @@ def _create_link_with_prefill(client: TestClient, template_id: int) -> dict:
         json={
             "template_id": template_id,
             "expires_in_hours": 24,
-            "prefill": {"owner_company": "Pacta UAB"},
+            "prefill": {"owner_company": "Melno UAB"},
         },
     )
     assert response.status_code == 200
@@ -116,7 +116,7 @@ def test_post_links_succeeds_with_owner_prefill_and_resolves_sys_date(links_pref
         assert "{{owner_company}}" not in link.resolved_content
         assert "{{sys_current_date}}" not in link.resolved_content
         assert "{{sys_current_datetime}}" not in link.resolved_content
-        assert "Pacta UAB" in link.resolved_content
+        assert "Melno UAB" in link.resolved_content
         assert datetime.now(UTC).date().isoformat() in link.resolved_content
         assert "{{client_name}}" in link.resolved_content
     finally:
@@ -153,7 +153,7 @@ def test_post_links_returns_400_for_extra_owner_fields(links_prefill_ctx):
             "template_id": template_id,
             "expires_in_hours": 24,
             "prefill": {
-                "owner_company": "Pacta UAB",
+                "owner_company": "Melno UAB",
                 "unknown_field": "X",
             },
         },
@@ -204,7 +204,7 @@ def test_public_submit_succeeds_with_only_public_fields(links_prefill_ctx):
         )
         assert submission is not None
         assert submission.submitted_data == {"client_name": "Alice"}
-        assert "Pacta UAB" in submission.rendered_content
+        assert "Melno UAB" in submission.rendered_content
         assert "Alice" in submission.rendered_content
         assert datetime.now(UTC).date().isoformat() in submission.rendered_content
         assert "{{" not in submission.rendered_content

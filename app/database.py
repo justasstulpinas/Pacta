@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from typing import Generator
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./pacta.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./melno.db")
 
 # check_same_thread only applies to SQLite
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
@@ -19,7 +19,7 @@ SessionLocal = sessionmaker(
 
 Base =declarative_base()
 
-# sukurta duombaze pacta/app/pacta.db
+# sukurta duombaze melno/app/melno.db
 
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()

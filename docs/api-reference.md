@@ -1,4 +1,4 @@
-# Pacta API Reference
+# Melno API Reference
 
 ## Base URL
 ```

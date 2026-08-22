@@ -66,7 +66,7 @@ async def lifespan(app: FastAPI):
     task.cancel()
 
 
-app = FastAPI(title="Pacta", lifespan=lifespan)
+app = FastAPI(title="Melno", lifespan=lifespan)
 # next.js frontendo reikalai
 _origins = [o for o in [
     os.getenv("FRONT_END_URL"),

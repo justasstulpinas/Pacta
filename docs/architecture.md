@@ -4,7 +4,7 @@ Backend API for contract template creation with open link signing, backend can g
 
 Core characteristics:
 
-SQLAlchemy ORM with SQLite default storage (`pacta.db`).
+SQLAlchemy ORM with SQLite default storage (`melno.db`).
 JWT-based authentication with role/permission checks.
 Template versioning and immutable submission snapshots.
 
@@ -164,7 +164,7 @@ Domain exceptions (`app/core/exceptions.py`) are mapped in `app/main.py` to have
 
 8. Data and Infra Notes
 
-Default database: SQLite at `sqlite:///./pacta.db`
+Default database: SQLite at `sqlite:///./melno.db`
 No migration framework is integrated.
 File uploads are stored under `app/uploads`.
 

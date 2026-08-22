@@ -6,7 +6,7 @@ STACK
 
 FastAPI
 SQLAlchemy
-SQLite (`pacta.db`)
+SQLite (`melno.db`)
 Pydantic
 WeasyPrint (PDF generation)
 python-docx and  BeautifulSoup (DOCX generation)
@@ -54,4 +54,4 @@ Health check: `http://127.0.0.1:8000/health`
 NOTES
 
 App creates tables automatically on startup.
-SQLite database file is stored at `./pacta.db`.
+SQLite database file is stored at `./melno.db`.

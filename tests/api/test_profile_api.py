@@ -135,7 +135,7 @@ def test_update_profile_fields(profile_api_ctx):
         "/profile",
         json={
             "profile_name": "  John Smith  ",
-            "company_name": "  Pacta  ",
+            "company_name": "  Melno  ",
             "address": "   Gedimino pr. 1  ",
             "phone_number": "  +37060000000  ",
         },
@@ -145,12 +145,12 @@ def test_update_profile_fields(profile_api_ctx):
 
     assert body["user_id"] == user_id
     assert body["profile_name"] == "John Smith"
-    assert body["company_name"] == "Pacta"
+    assert body["company_name"] == "Melno"
     assert body["address"] == "Gedimino pr. 1"
     assert body["phone_number"] == "+37060000000"
     assert body["prefill"] == {
         "name_surname": "John Smith",
-        "company_name": "Pacta",
+        "company_name": "Melno",
         "address": "Gedimino pr. 1",
         "phone_number": "+37060000000",
     }
