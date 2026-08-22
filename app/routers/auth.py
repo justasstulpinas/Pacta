@@ -19,7 +19,9 @@ router = APIRouter(
 
 
 @router.post("/register")
+@limiter.limit("5/minute")
 def register(
+    request: Request,
     data: UserCreate,
     db: Session = Depends(get_db),
 ):
@@ -49,13 +51,10 @@ def login(
         "token_type": "bearer",
     }
     
-
-    
-
-
-
 @router.post("/token")
+@limiter.limit("20/minute")
 def token(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ):
@@ -100,7 +99,9 @@ def verify_email(
 
 
 @router.post("/forgot-password")
+@limiter.limit("5/minute")
 def forgot_password(
+    request: Request,
     data: ForgotPasswordRequest,
     db: Session = Depends(get_db),
 ):
