@@ -1,20 +1,18 @@
 from datetime import datetime
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from pydantic import BaseModel, ConfigDict
-
-# pagalbinis kontaktu ivesti standartizuojantis fialas
 class ContactCreate(BaseModel):
-    name: str | None = None
-    phone: str | None = None
-    address: str | None = None
-    email: str | None = None
+    name: str | None = Field(None, max_length=200)
+    phone: str | None = Field(None, max_length=50)
+    address: str | None = Field(None, max_length=500)
+    email: str | None = Field(None, max_length=254)
 
 
 class ContactUpdate(BaseModel):
-    name: str | None = None
-    phone: str | None = None
-    address: str | None = None
-    email: str | None = None
+    name: str | None = Field(None, max_length=200)
+    phone: str | None = Field(None, max_length=50)
+    address: str | None = Field(None, max_length=500)
+    email: str | None = Field(None, max_length=254)
 
 
 class ContactOut(BaseModel):

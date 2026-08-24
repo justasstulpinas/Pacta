@@ -1,6 +1,5 @@
 from datetime import datetime
-
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProfilePrefillOut(BaseModel):
@@ -32,24 +31,24 @@ class ProfileOut(BaseModel):
 
 
 class ProfileSignatureIn(BaseModel):
-    signature_image: str
+    signature_image: str = Field(..., max_length=2_000_000)
 
 
 class ProfileLogoIn(BaseModel):
-    logo_image: str
+    logo_image: str = Field(..., max_length=2_000_000)
 
 
 class ProfileLogoPositionIn(BaseModel):
-    logo_x: float
-    logo_y: float
+    logo_x: float = Field(..., ge=0, le=100)
+    logo_y: float = Field(..., ge=0, le=100)
 
 
 class ProfileUpdate(BaseModel):
-    profile_name: str | None = None
-    company_name: str | None = None
-    company_code: str | None = None
-    address: str | None = None
-    phone_number: str | None = None
+    profile_name: str | None = Field(None, max_length=200)
+    company_name: str | None = Field(None, max_length=200)
+    company_code: str | None = Field(None, max_length=50)
+    address: str | None = Field(None, max_length=500)
+    phone_number: str | None = Field(None, max_length=50)
 
 
 class ProfileAvatarOut(BaseModel):

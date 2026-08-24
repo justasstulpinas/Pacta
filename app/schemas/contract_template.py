@@ -3,11 +3,10 @@ from typing import Optional
 from pydantic import ConfigDict
 
 
-# pagalbinis sutarciu ivesciu standartizavimo failas
 class ContractTemplateCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=500)
-    content: str = Field(..., min_length=1)
+    content: str = Field(..., min_length=1, max_length=500_000)
 
 class ContractTemplateOut(BaseModel):
     id: int
@@ -35,9 +34,9 @@ class ContractTemplateListItem(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class ContractTemplateUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    content: Optional[str] = None
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = Field(None, max_length=500)
+    content: Optional[str] = Field(None, max_length=500_000)
     logo_x: Optional[float] = None
     logo_y: Optional[float] = None
     logo_w: Optional[float] = None

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -31,7 +31,6 @@ class FilledContractListItem(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class ContractSubmitRequest(BaseModel):
-    payload: Dict[str, str]
-    signature_image: Optional[str] = None
-    submitter_email: Optional[str] = None
-
+    payload: Dict[str, str] = Field(default_factory=dict)
+    signature_image: Optional[str] = Field(None, max_length=2_000_000)
+    submitter_email: Optional[EmailStr] = Field(None, max_length=254)

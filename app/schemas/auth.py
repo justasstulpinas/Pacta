@@ -1,21 +1,19 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 class UserCreate(BaseModel):
-    email: EmailStr
-    password: str
+    email: EmailStr = Field(..., max_length=254)
+    password: str = Field(..., min_length=12, max_length=128)
 
 class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str
+    email: EmailStr = Field(..., max_length=254)
+    password: str = Field(..., max_length=128)
 
 class VerifyEmailRequest(BaseModel):
-    token: str
+    token: str = Field(..., max_length=512)
 
 class ForgotPasswordRequest(BaseModel):
-    email: str
+    email: EmailStr = Field(..., max_length=254)
 
 class ResetPasswordRequest(BaseModel):
-    token: str
-    new_password: str
-
-# sukurtas auth.py kuris issiuncia requesta 
+    token: str = Field(..., max_length=512)
+    new_password: str = Field(..., min_length=12, max_length=128)

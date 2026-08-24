@@ -5,10 +5,10 @@ from pydantic import ConfigDict
 
 class PublicLinkCreate(BaseModel):
     template_id: int
-    expires_in_hours: int
+    expires_in_hours: int = Field(..., ge=1, le=8760)
     prefill: Dict[str, str] = Field(default_factory=dict)
-    # Optional: if set, system emails the access link + code to the client directly
-    recipient_email: Optional[EmailStr] = None
+    recipient_email: Optional[EmailStr] = Field(None, max_length=254)
+
 class PublicLinkOut(BaseModel):
     id: int
     token: str
