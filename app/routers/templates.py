@@ -246,6 +246,20 @@ async def replace_text_in_docx(
     return {"placeholders": placeholders}
 
 
+@router.get("/tmp/{file_key}")
+async def get_tmp_docx(
+    file_key: str,
+    current_user: User = Depends(get_current_user),
+):
+    from app.core.exceptions import BadRequestError, NotFoundError
+    if not file_key.startswith("tmp_"):
+        raise BadRequestError("Neleistinas failo raktas")
+    path = DOCX_UPLOAD_DIR / f"{file_key}.docx"
+    if not path.exists():
+        raise NotFoundError("Failas nerastas")
+    return FileResponse(str(path), media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+
 @router.get("/{template_id}/docx")
 async def get_template_docx(
     template_id: int,
