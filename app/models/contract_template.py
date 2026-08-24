@@ -43,7 +43,8 @@ class ContractTemplate(Base):
     name = Column(String(255), nullable=False)
     description = Column(String(500), nullable=True)
 
-    content = Column(Text, nullable=False)
+    content = Column(Text, nullable=True)
+    docx_path = Column(String(512), nullable=True)
 
     status = Column(
     SAEnum(

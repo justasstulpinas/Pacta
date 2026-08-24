@@ -1,7 +1,32 @@
 import io
-import mammoth
+import re
+import shutil
+import uuid as _uuid
+from pathlib import Path
 from fastapi import APIRouter, Depends, File, UploadFile, status
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
+DOCX_UPLOAD_DIR = Path("app/uploads/templates")
+DOCX_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+def _extract_placeholders(docx_bytes: bytes) -> list[str]:
+    from docx import Document
+    doc = Document(io.BytesIO(docx_bytes))
+    found: set[str] = set()
+    pattern = re.compile(r"\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}")
+    def scan(text: str):
+        for m in pattern.finditer(text):
+            found.add(m.group(1))
+    for para in doc.paragraphs:
+        scan(para.text)
+    for table in doc.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                for para in cell.paragraphs:
+                    scan(para.text)
+    return sorted(found)
 
 from app.database import get_db
 from app.dependencies.auth import get_current_user
@@ -166,7 +191,77 @@ async def upload_docx(
         raise BadRequestError("Tik .docx formato failai palaikomi")
 
     data = await file.read()
-    return {"html": _docx_to_tiptap_html(data)}
+    file_key = f"tmp_{_uuid.uuid4().hex}"
+    tmp_path = DOCX_UPLOAD_DIR / f"{file_key}.docx"
+    tmp_path.write_bytes(data)
+
+    placeholders = _extract_placeholders(data)
+    original_name = (file.filename or "dokumentas").removesuffix(".docx")
+    return {"file_key": file_key, "placeholders": placeholders, "filename": original_name}
+
+
+class ReplaceTextRequest(BaseModel):
+    file_key: str
+    find_text: str
+    placeholder: str
+
+
+@router.post("/replace-text")
+async def replace_text_in_docx(
+    body: ReplaceTextRequest,
+    current_user: User = Depends(get_current_user),
+):
+    from docx import Document
+    from app.core.exceptions import BadRequestError, NotFoundError
+    if not body.file_key.startswith("tmp_"):
+        raise BadRequestError("Neleistinas failo raktas")
+    path = DOCX_UPLOAD_DIR / f"{body.file_key}.docx"
+    if not path.exists():
+        raise NotFoundError("Failas nerastas")
+
+    replacement = f"{{{{{body.placeholder}}}}}"
+    doc = Document(str(path))
+
+    def replace_in_para(para):
+        full = "".join(r.text for r in para.runs)
+        if body.find_text not in full:
+            return
+        new_full = full.replace(body.find_text, replacement, 1)
+        # Put all text in first run, clear the rest
+        if para.runs:
+            para.runs[0].text = new_full
+            for r in para.runs[1:]:
+                r.text = ""
+
+    for para in doc.paragraphs:
+        replace_in_para(para)
+    for table in doc.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                for para in cell.paragraphs:
+                    replace_in_para(para)
+
+    doc.save(str(path))
+    placeholders = _extract_placeholders(path.read_bytes())
+    return {"placeholders": placeholders}
+
+
+@router.get("/{template_id}/docx")
+async def get_template_docx(
+    template_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    from app.core.exceptions import NotFoundError, ForbiddenError
+    service = TemplateService(db)
+    template = service.get_template_by_id(template_id, current_user)
+    if not template.docx_path:
+        from app.core.exceptions import NotFoundError
+        raise NotFoundError("DOCX failas nerastas")
+    path = DOCX_UPLOAD_DIR / template.docx_path
+    if not path.exists():
+        raise NotFoundError("DOCX failas nerastas")
+    return FileResponse(str(path), media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document", filename=f"{template.name}.docx")
 
 
 def _docx_to_tiptap_html(data: bytes) -> str:

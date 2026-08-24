@@ -6,13 +6,15 @@ from pydantic import ConfigDict
 class ContractTemplateCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=500)
-    content: str = Field(..., min_length=1, max_length=500_000)
+    content: Optional[str] = Field(None, max_length=500_000)
+    file_key: Optional[str] = Field(None, max_length=100)
 
 class ContractTemplateOut(BaseModel):
     id: int
     name: str
     description: Optional[str]
-    content: str
+    content: Optional[str]
+    docx_path: Optional[str]
     status: str
     logo_x: float = 5.0
     logo_y: float = 5.0

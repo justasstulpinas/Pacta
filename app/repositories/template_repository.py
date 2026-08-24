@@ -56,8 +56,9 @@ class TemplateRepository:
         owner_id: int,
         name: str,
         description: str | None,
-        content: str,
+        content: str | None,
         status: TemplateStatus,
+        docx_path: str | None = None,
     ) -> ContractTemplate:
         template = ContractTemplate(
             owner_id=owner_id,
@@ -65,6 +66,7 @@ class TemplateRepository:
             description=description,
             content=content,
             status=status.value,
+            docx_path=docx_path,
         )
         self.db.add(template)
         self.db.flush()

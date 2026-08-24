@@ -1,6 +1,10 @@
+import shutil
+from pathlib import Path
 import bleach
 from bleach.css_sanitizer import CSSSanitizer
 from datetime import UTC, datetime
+
+DOCX_UPLOAD_DIR = Path("app/uploads/templates")
 
 from sqlalchemy.orm import Session
 
@@ -35,19 +39,35 @@ class TemplateService:
         payload: ContractTemplateCreate,
         user: User,
     ) -> ContractTemplate:
+        import uuid as _uuid
+        from app.core.exceptions import BadRequestError
+
+        docx_path: str | None = None
+
+        if payload.file_key:
+            if not payload.file_key.startswith("tmp_"):
+                raise BadRequestError("Neleistinas failo raktas")
+            tmp = DOCX_UPLOAD_DIR / f"{payload.file_key}.docx"
+            if not tmp.exists():
+                raise BadRequestError("Įkeltas failas nerastas — įkelkite iš naujo")
+            perm_name = f"{_uuid.uuid4().hex}.docx"
+            perm = DOCX_UPLOAD_DIR / perm_name
+            shutil.move(str(tmp), str(perm))
+            docx_path = perm_name
+
+        content = _clean(payload.content) if payload.content else None
+
         template = self.repo.create_template(
             owner_id=user.id,
             name=payload.name,
             description=payload.description,
-            content=_clean(payload.content),
+            content=content,
             status=TemplateStatus.DRAFT,
+            docx_path=docx_path,
         )
-        
-        self.repo.create_version(
-            template_id=template.id,
-            version_number=1,
-            content=_clean(payload.content),
-        )
+
+        if content:
+            self.repo.create_version(template_id=template.id, version_number=1, content=content)
         return self.repo.save_template(template)
 
     def duplicate_template(self, template_id: int, user: User) -> ContractTemplate:
