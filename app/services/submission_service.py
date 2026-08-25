@@ -1,4 +1,5 @@
 import hashlib
+import json
 import logging
 import os
 from datetime import datetime, UTC, timedelta
@@ -17,8 +18,9 @@ from app.renderers.document_renderer import render_contract_html
 from app.renderers.pdf_renderer import render_pdf_from_html
 from app.services.code_service import CodeService
 from app.services.encryption_service import EncryptionService
-from app.services.placeholder_service import PlaceholderService
+from app.services.placeholder_service import PlaceholderService, SENSITIVE_PLACEHOLDERS
 from app.services.policy import PolicyService
+from app.services.template_service import DOCX_UPLOAD_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +53,15 @@ class SubmissionService:
             raise NotFoundError("Template not found")
 
         PolicyService.check_template_access(user, template)
+
+        if template.docx_path:
+            return self._create_docx_submission(
+                template=template,
+                expires_in_hours=expires_in_hours,
+                user=user,
+                prefill_data=prefill_data,
+                recipient_email=recipient_email,
+            )
 
         latest_version = self.repo.get_latest_version(template.id)
         if not latest_version:
@@ -174,8 +185,20 @@ class SubmissionService:
         template = self.repo.get_by_id(sub.template_id)
 
         content = sub.resolved_content or ""
-        placeholders = PlaceholderService.extract_placeholders(content)
-        _, _, public_fields = PlaceholderService.classify_fields(placeholders)
+
+        try:
+            meta = json.loads(content)
+            is_docx = meta.get("type") == "docx"
+        except (ValueError, AttributeError):
+            is_docx = False
+
+        if is_docx:
+            public_fields = meta.get("client_fields", [])
+            display_content = ""
+        else:
+            placeholders = PlaceholderService.extract_placeholders(content)
+            _, _, public_fields = PlaceholderService.classify_fields(placeholders)
+            display_content = content
 
         profile_repo = UserProfileRepository(self.db)
         owner_profile = profile_repo.get_by_user_id(sub.creator_id)
@@ -184,9 +207,10 @@ class SubmissionService:
         return {
             "uuid": sub.uuid,
             "template_name": template.name if template else "",
-            "content": content,
+            "content": display_content,
             "fields": public_fields,
             "is_sensitive": sub.is_sensitive,
+            "is_docx": is_docx,
             "logo_image": logo_image,
             "logo_x": float(sub.logo_x) if sub.logo_x else 5.0,
             "logo_y": float(sub.logo_y) if sub.logo_y else 5.0,
@@ -261,43 +285,70 @@ class SubmissionService:
             raise BadRequestError("Both consent checkboxes must be confirmed.")
 
         content = sub.resolved_content or ""
-        placeholders = PlaceholderService.extract_placeholders(content)
-        _, _, public_fields = PlaceholderService.classify_fields(placeholders)
-        PlaceholderService.validate_payload(public_fields, payload)
 
-        # --- Render in RAM — payload never leaves this scope ---
-        rendered_html_content = PlaceholderService.render_content(content, payload)
+        # Detect DOCX vs HTML submission
+        try:
+            meta = json.loads(content)
+            is_docx = meta.get("type") == "docx"
+        except (ValueError, AttributeError):
+            is_docx = False
 
-        document_hash = hashlib.sha256(rendered_html_content.encode()).hexdigest()
+        if is_docx:
+            # --- DOCX path: fill placeholders and convert via LibreOffice ---
+            from app.renderers.docx_filler import fill_docx_placeholders, convert_docx_to_pdf
 
-        profile_repo = UserProfileRepository(self.db)
-        owner_profile = profile_repo.get_by_user_id(sub.creator_id)
-        user_signature_image = owner_profile.signature_image if owner_profile else None
-        logo_image = owner_profile.logo_image if owner_profile else None
+            client_fields = meta.get("client_fields", [])
+            system_fields_list = meta.get("system_fields", [])
+            owner_prefill = meta.get("owner_prefill", {})
 
-        signer_name_from_payload = (
-            payload.get("client_name")
-            or payload.get("client_vardas")
-            or signer_full_name
-        )
+            PlaceholderService.validate_payload(client_fields, payload)
+            system_resolved = self._resolve_system_fields(system_fields_list)
+            all_values = {**owner_prefill, **system_resolved, **payload}
 
-        full_html = render_contract_html(
-            content=rendered_html_content,
-            signature_image=signature_image,
-            signer_name=signer_name_from_payload,
-            user_signature_image=user_signature_image,
-            logo_image=logo_image,
-            logo_x=float(sub.logo_x) if sub.logo_x else 5.0,
-            logo_y=float(sub.logo_y) if sub.logo_y else 5.0,
-            logo_w=float(sub.logo_w) if sub.logo_w else 15.0,
-            client_sig_x=float(sub.client_sig_x) if sub.client_sig_x else None,
-            client_sig_y=float(sub.client_sig_y) if sub.client_sig_y else None,
-            user_sig_x=float(sub.user_sig_x) if sub.user_sig_x else None,
-            user_sig_y=float(sub.user_sig_y) if sub.user_sig_y else None,
-        )
+            docx_path_abs = DOCX_UPLOAD_DIR / template.docx_path
+            if not docx_path_abs.exists():
+                raise NotFoundError("Template document not found on disk")
 
-        # Render PDF in RAM
-        pdf_bytes = render_pdf_from_html(full_html)
+            docx_bytes = docx_path_abs.read_bytes()
+            filled_bytes = fill_docx_placeholders(docx_bytes, all_values)
+            pdf_bytes = convert_docx_to_pdf(filled_bytes)
+            document_hash = hashlib.sha256(filled_bytes).hexdigest()
+        else:
+            # --- HTML path: render via WeasyPrint ---
+            placeholders = PlaceholderService.extract_placeholders(content)
+            _, _, public_fields = PlaceholderService.classify_fields(placeholders)
+            PlaceholderService.validate_payload(public_fields, payload)
+
+            rendered_html_content = PlaceholderService.render_content(content, payload)
+            document_hash = hashlib.sha256(rendered_html_content.encode()).hexdigest()
+
+            profile_repo = UserProfileRepository(self.db)
+            owner_profile = profile_repo.get_by_user_id(sub.creator_id)
+            user_signature_image = owner_profile.signature_image if owner_profile else None
+            logo_image = owner_profile.logo_image if owner_profile else None
+
+            signer_name_from_payload = (
+                payload.get("client_name")
+                or payload.get("client_vardas")
+                or signer_full_name
+            )
+
+            full_html = render_contract_html(
+                content=rendered_html_content,
+                signature_image=signature_image,
+                signer_name=signer_name_from_payload,
+                user_signature_image=user_signature_image,
+                logo_image=logo_image,
+                logo_x=float(sub.logo_x) if sub.logo_x else 5.0,
+                logo_y=float(sub.logo_y) if sub.logo_y else 5.0,
+                logo_w=float(sub.logo_w) if sub.logo_w else 15.0,
+                client_sig_x=float(sub.client_sig_x) if sub.client_sig_x else None,
+                client_sig_y=float(sub.client_sig_y) if sub.client_sig_y else None,
+                user_sig_x=float(sub.user_sig_x) if sub.user_sig_x else None,
+                user_sig_y=float(sub.user_sig_y) if sub.user_sig_y else None,
+            )
+
+            pdf_bytes = render_pdf_from_html(full_html)
 
         # Encrypt for owner download
         aes_key = EncryptionService.generate_key()
@@ -355,9 +406,6 @@ class SubmissionService:
             )
         except Exception:
             logger.exception("Failed to send owner notification for submission %s", uuid)
-
-        # Clear rendered content from memory (Python GC will handle it, but signal intent)
-        del rendered_html_content, full_html
 
         return pdf_bytes
 
@@ -436,6 +484,91 @@ class SubmissionService:
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    def _create_docx_submission(
+        self,
+        *,
+        template,
+        expires_in_hours: int,
+        user: User,
+        prefill_data: dict,
+        recipient_email: str | None,
+    ) -> dict:
+        from app.renderers.docx_filler import extract_placeholders_from_docx
+
+        docx_path_abs = DOCX_UPLOAD_DIR / template.docx_path
+        if not docx_path_abs.exists():
+            raise NotFoundError("Template document file not found")
+
+        docx_bytes = docx_path_abs.read_bytes()
+        all_placeholders = extract_placeholders_from_docx(docx_bytes)
+        owner_fields, system_fields_list, client_fields = PlaceholderService.classify_fields(
+            all_placeholders
+        )
+        PlaceholderService.validate_owner_prefill(owner_fields, prefill_data)
+
+        is_sensitive = bool(set(all_placeholders) & SENSITIVE_PLACEHOLDERS)
+
+        resolved_content = json.dumps({
+            "type": "docx",
+            "owner_prefill": prefill_data,
+            "client_fields": client_fields,
+            "system_fields": system_fields_list,
+        })
+
+        access_code_plain, access_code_hash = CodeService.generate()
+
+        submission = Submission(
+            template_id=template.id,
+            template_version_id=None,
+            creator_id=user.id,
+            recipient_email=recipient_email,
+            is_sensitive=is_sensitive,
+            resolved_content=resolved_content,
+            access_code_hash=access_code_hash,
+            status=SubmissionStatus.PENDING,
+            created_at=datetime.now(UTC),
+            expires_at=datetime.now(UTC) + timedelta(hours=expires_in_hours),
+            logo_x=str(template.logo_x) if template.logo_x is not None else "5.0",
+            logo_y=str(template.logo_y) if template.logo_y is not None else "5.0",
+            logo_w=str(template.logo_w) if template.logo_w is not None else "15.0",
+            client_sig_x=str(template.client_sig_x) if template.client_sig_x is not None else None,
+            client_sig_y=str(template.client_sig_y) if template.client_sig_y is not None else None,
+            user_sig_x=str(template.user_sig_x) if template.user_sig_x is not None else None,
+            user_sig_y=str(template.user_sig_y) if template.user_sig_y is not None else None,
+        )
+        self.db.add(submission)
+        self.db.commit()
+        self.db.refresh(submission)
+
+        signing_url = f"{APP_URL}/sign/{submission.uuid}"
+
+        if recipient_email:
+            try:
+                from app.services.email_services import send_signing_invitation
+                send_signing_invitation(
+                    recipient_email=recipient_email,
+                    template_name=template.name,
+                    signing_url=signing_url,
+                    access_code=access_code_plain,
+                    expires_at=submission.expires_at,
+                )
+            except Exception:
+                logger.exception(
+                    "Failed to send signing invitation for submission %s", submission.uuid
+                )
+            return {
+                "uuid": submission.uuid,
+                "expires_at": submission.expires_at,
+                "email_sent": True,
+            }
+
+        return {
+            "uuid": submission.uuid,
+            "access_code": access_code_plain,
+            "expires_at": submission.expires_at,
+            "email_sent": False,
+        }
 
     def _get_valid_submission(self, uuid: str) -> Submission:
         sub = self.db.query(Submission).filter(Submission.uuid == uuid).first()
