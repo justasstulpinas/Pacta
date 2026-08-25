@@ -39,6 +39,7 @@ class ContractTemplateUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=500)
     content: Optional[str] = Field(None, max_length=500_000)
+    file_key: Optional[str] = None  # replace DOCX file with a new tmp upload
     logo_x: Optional[float] = None
     logo_y: Optional[float] = None
     logo_w: Optional[float] = None

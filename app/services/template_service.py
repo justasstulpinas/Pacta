@@ -8,7 +8,7 @@ DOCX_UPLOAD_DIR = Path("app/uploads/templates")
 
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import ForbiddenError, NotFoundError
+from app.core.exceptions import BadRequestError, ForbiddenError, NotFoundError
 from app.models.contract_template import ContractTemplate
 from app.models.enums import TemplateStatus
 from app.models.user import User
@@ -124,6 +124,23 @@ class TemplateService:
 
         if template.status == TemplateStatus.ARCHIVED.value:
             raise ForbiddenError("Archived templates cannot be edited")
+
+        if payload.file_key is not None:
+            import uuid as _uuid
+            if not payload.file_key.startswith("tmp_"):
+                raise BadRequestError("Neleistinas failo raktas")
+            tmp = DOCX_UPLOAD_DIR / f"{payload.file_key}.docx"
+            if not tmp.exists():
+                raise BadRequestError("Įkeltas failas nerastas — įkelkite iš naujo")
+            old_docx = template.docx_path
+            perm_name = f"{_uuid.uuid4().hex}.docx"
+            perm = DOCX_UPLOAD_DIR / perm_name
+            shutil.move(str(tmp), str(perm))
+            template.docx_path = perm_name
+            if old_docx:
+                old_file = DOCX_UPLOAD_DIR / old_docx
+                if old_file.exists():
+                    old_file.unlink(missing_ok=True)
 
         content_changed = False
         if payload.name is not None:
