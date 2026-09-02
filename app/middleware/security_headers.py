@@ -5,7 +5,6 @@ from starlette.responses import Response
 
 _DOCS_PATHS = {"/docs", "/redoc", "/openapi.json"}
 
-# Swagger UI needs inline scripts/styles — relax CSP only on those paths.
 _CSP_API = "default-src 'none'"
 _CSP_DOCS = (
     "default-src 'none'; "

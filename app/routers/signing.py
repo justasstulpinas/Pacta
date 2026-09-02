@@ -173,6 +173,62 @@ def get_preview(
     return service.get_preview(uuid)
 
 
+@router.get("/submissions/{uuid}/preview-docx")
+def get_preview_docx(
+    uuid: str,
+    db: Session = Depends(get_db),
+    signing_session: str | None = Cookie(default=None),
+):
+    """Return partially-filled DOCX for preview: owner+system fields filled, client placeholders intact."""
+    from fastapi.responses import Response as FastResponse
+    import json as _json
+    from app.models.submission import Submission
+    from app.renderers.docx_filler import fill_docx_placeholders
+    from app.services.template_service import DOCX_UPLOAD_DIR
+    from app.repositories.template_repository import TemplateRepository
+    from datetime import datetime, UTC
+
+    _require_session(uuid, signing_session)
+
+    sub = db.query(Submission).filter(Submission.uuid == uuid).first()
+    if not sub:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    content = sub.resolved_content or ""
+    try:
+        meta = _json.loads(content)
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=400, detail="Not a DOCX submission")
+
+    if meta.get("type") != "docx":
+        raise HTTPException(status_code=400, detail="Not a DOCX submission")
+
+    repo = TemplateRepository(db)
+    template = repo.get_by_id(sub.template_id)
+    if not template or not template.docx_path:
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    docx_path = DOCX_UPLOAD_DIR / template.docx_path
+    if not docx_path.exists():
+        raise HTTPException(status_code=404, detail="DOCX file not found")
+
+    # Fill only owner + system fields; leave client fields as {{placeholder}}
+    owner_prefill = meta.get("owner_prefill", {})
+    system_fields_list = meta.get("system_fields", [])
+    now = datetime.now(UTC)
+    system_resolved = {
+        f: now.strftime("%Y-%m-%d") if f == "sys_current_date" else now.strftime("%Y-%m-%d %H:%M")
+        for f in system_fields_list
+    }
+    values = {**owner_prefill, **system_resolved}
+
+    filled = fill_docx_placeholders(docx_path.read_bytes(), values)
+    return FastResponse(
+        content=filled,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
+
+
 @router.post("/submissions/{uuid}/viewed")
 def mark_viewed(
     uuid: str,

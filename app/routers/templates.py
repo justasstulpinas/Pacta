@@ -89,8 +89,19 @@ def get_template(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    from app.schemas.contract_template import ContractTemplateOut
     service = TemplateService(db)
-    return service.get_template_by_id(template_id, current_user)
+    template = service.get_template_by_id(template_id, current_user)
+
+    placeholders: list[str] = []
+    if template.docx_path:
+        docx_file = DOCX_UPLOAD_DIR / template.docx_path
+        if docx_file.exists():
+            placeholders = _extract_placeholders(docx_file.read_bytes())
+
+    out = ContractTemplateOut.model_validate(template)
+    out.placeholders = placeholders
+    return out
 
 
 @router.get(
@@ -219,27 +230,56 @@ async def replace_text_in_docx(
     if not path.exists():
         raise NotFoundError("Failas nerastas")
 
+    import re as _re
+
     replacement = f"{{{{{body.placeholder}}}}}"
     doc = Document(str(path))
 
-    def replace_in_para(para):
+    # Normalise the search string the same way browsers collapse whitespace
+    def _normalise(s: str) -> str:
+        return _re.sub(r"\s+", " ", s).strip()
+
+    find_normalised = _normalise(body.find_text)
+    replaced = False
+
+    def replace_in_para(para) -> bool:
         full = "".join(r.text for r in para.runs)
-        if body.find_text not in full:
-            return
-        new_full = full.replace(body.find_text, replacement, 1)
-        # Put all text in first run, clear the rest
+        full_n = _normalise(full)
+        if find_normalised not in full_n:
+            return False
+        # Rebuild the run text with the replacement applied on the normalised string
+        new_full = full_n.replace(find_normalised, replacement, 1)
         if para.runs:
             para.runs[0].text = new_full
             for r in para.runs[1:]:
                 r.text = ""
+        return True
 
     for para in doc.paragraphs:
-        replace_in_para(para)
-    for table in doc.tables:
-        for row in table.rows:
-            for cell in row.cells:
-                for para in cell.paragraphs:
-                    replace_in_para(para)
+        if replace_in_para(para):
+            replaced = True
+            break
+
+    if not replaced:
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    for para in cell.paragraphs:
+                        if replace_in_para(para):
+                            replaced = True
+                            break
+                    if replaced:
+                        break
+                if replaced:
+                    break
+            if replaced:
+                break
+
+    if not replaced:
+        from app.core.exceptions import BadRequestError
+        raise BadRequestError(
+            f"Tekstas '{body.find_text[:60]}' nerastas dokumente. Pazymekite teksta tiksliai."
+        )
 
     doc.save(str(path))
     placeholders = _extract_placeholders(path.read_bytes())

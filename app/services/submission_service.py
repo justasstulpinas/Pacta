@@ -109,12 +109,16 @@ class SubmissionService:
         if recipient_email:
             try:
                 from app.services.email_services import send_signing_invitation
+                owner_profile_repo = UserProfileRepository(self.db)
+                owner_prof = owner_profile_repo.get_by_user_id(user.id)
+                owner_display = (owner_prof.profile_name or owner_prof.company_name) if owner_prof else None
                 send_signing_invitation(
                     recipient_email=recipient_email,
                     template_name=template.name,
                     signing_url=signing_url,
                     access_code=access_code_plain,
                     expires_at=submission.expires_at,
+                    owner_name=owner_display,
                 )
             except Exception:
                 logger.exception("Failed to send signing invitation for submission %s", submission.uuid)
@@ -215,6 +219,10 @@ class SubmissionService:
             "logo_x": float(sub.logo_x) if sub.logo_x else 5.0,
             "logo_y": float(sub.logo_y) if sub.logo_y else 5.0,
             "logo_w": float(sub.logo_w) if sub.logo_w else 15.0,
+            "owner_name": owner_profile.profile_name if owner_profile else None,
+            "owner_company": owner_profile.company_name if owner_profile else None,
+            "owner_email": template.owner.email if template and template.owner else None,
+            "owner_phone": owner_profile.phone_number if owner_profile else None,
         }
 
     # ------------------------------------------------------------------
@@ -245,6 +253,7 @@ class SubmissionService:
                 send_contract_declined(
                     owner_email=template.owner.email,
                     template_name=template.name,
+                    template_id=template.id,
                 )
         except Exception:
             logger.exception("Failed to send decline notification for submission %s", uuid)
@@ -546,12 +555,16 @@ class SubmissionService:
         if recipient_email:
             try:
                 from app.services.email_services import send_signing_invitation
+                owner_profile_repo = UserProfileRepository(self.db)
+                owner_prof = owner_profile_repo.get_by_user_id(user.id)
+                owner_display = (owner_prof.profile_name or owner_prof.company_name) if owner_prof else None
                 send_signing_invitation(
                     recipient_email=recipient_email,
                     template_name=template.name,
                     signing_url=signing_url,
                     access_code=access_code_plain,
                     expires_at=submission.expires_at,
+                    owner_name=owner_display,
                 )
             except Exception:
                 logger.exception(

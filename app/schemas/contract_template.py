@@ -15,6 +15,7 @@ class ContractTemplateOut(BaseModel):
     description: Optional[str]
     content: Optional[str]
     docx_path: Optional[str]
+    placeholders: list[str] = []
     status: str
     logo_x: float = 5.0
     logo_y: float = 5.0
