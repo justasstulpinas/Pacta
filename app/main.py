@@ -74,9 +74,8 @@ _is_prod = os.getenv("ENVIRONMENT") == "production"
 # Explicit origin allowlist — never use "*" on an authenticated API.
 # FRONT_END_URL covers local dev or custom staging domains via .env.
 _origins: list[str] = list(filter(None, [
-    os.getenv("FRONT_END_URL"),          # set to https://melno.app in production
-    "https://www.melno.app",
-    "https://melno.app",
+    os.getenv("FRONT_END_URL"),          # production: https://melno.app
+    os.getenv("FRONT_END_URL_WWW"),      # optional: https://www.melno.app
 ]))
 if not _is_prod:
     _origins.append("http://localhost:3000")
