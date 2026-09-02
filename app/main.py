@@ -68,25 +68,29 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Melno", lifespan=lifespan)
-# next.js frontendo reikalai
-_origins = [o for o in [
-    os.getenv("FRONT_END_URL"),
+
+_is_prod = os.getenv("ENVIRONMENT") == "production"
+
+# Explicit origin allowlist — never use "*" on an authenticated API.
+# FRONT_END_URL covers local dev or custom staging domains via .env.
+_origins: list[str] = list(filter(None, [
+    os.getenv("FRONT_END_URL"),          # set to https://melno.app in production
     "https://www.melno.app",
     "https://melno.app",
-    "https://melno-frontend-git-main-justas-stulpinas-projects.vercel.app",
-    "https://melno-frontend-193effs7n-justas-stulpinas-projects.vercel.app",
-    "http://localhost:3000",
-] if o]
+]))
+if not _is_prod:
+    _origins.append("http://localhost:3000")
 
-if os.getenv("ENVIRONMENT") == "production":
+if _is_prod:
     app.add_middleware(HTTPSRedirectMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
+    expose_headers=["X-Request-ID"],
 )
 app.add_middleware(SecureLoggingMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
